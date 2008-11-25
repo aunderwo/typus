@@ -112,7 +112,7 @@ module TypusHelper
   end
 
   def header
-    "<h1>#{Typus::Configuration.options[:app_name]} <small>#{link_to "View site", '/', :target => 'blank'}</small></h1>"
+    "<h1>#{Typus::Configuration.options[:app_name]} <small>#{link_to "View site", "#{RAILS_APPLICATION_PREFIX}/", :target => 'blank'}</small></h1>"
   end
 
   def login_info
