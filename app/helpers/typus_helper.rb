@@ -32,7 +32,7 @@ module TypusHelper
           description = Typus.module_description(model)
           html << <<-HTML
 <tr class=\"#{cycle('even', 'odd')}\">
-<td>#{link_to model.titleize.pluralize, "/admin/#{model.tableize}"}<br /><small>#{description}</small></td>
+<td>#{link_to model.titleize.pluralize, "#{RAILS_APPLICATION_PREFIX}/admin/#{model.tableize}"}<br /><small>#{description}</small></td>
 <td class=\"right\"><small>
   #{link_to 'Add', "/admin/#{model.tableize}/new" if @current_user.can_perform?(model, 'create')}
 </small></td>
