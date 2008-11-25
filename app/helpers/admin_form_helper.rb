@@ -94,7 +94,7 @@ module AdminFormHelper
   def typus_collection_field(attribute, value)
 
     back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
-    related = attribute.split("_id").first.camelize.constantize
+    related = @model.reflect_on_association(attribute.split("_id").first.to_sym).class_name.constantize
 
     returning(String.new) do |html|
       html << <<-HTML
