@@ -31,7 +31,7 @@ module AdminFormHelper
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for=\"item_#{attribute}\">#{attribute.titleize.capitalize}</label>
-<select id="item_#{attribute}" name="item[#{attribute}]">
+<select id="item_#{attribute}" name="item[#{attribute}]" <%= attribute_disabled?(attribute) ? 'disabled="disabled"' : '' %>>>
   <option value=""></option>
   #{expand_tree_into_select_field(@item.class.top)}
 </select></li>
@@ -43,7 +43,7 @@ module AdminFormHelper
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize}</label>
-#{datetime_select :item, attribute, { :minute_step => Typus::Configuration.options[:minute_step] }}</li>
+#{datetime_select :item, attribute, { :minute_step => Typus::Configuration.options[:minute_step] }, {:disabled => attribute_disabled?(attribute)}}</li>
       HTML
     end
   end
@@ -52,7 +52,7 @@ module AdminFormHelper
       returning(String.new) do |html|
         html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize}</label>
-#{date_select :item, attribute, { :minute_step => Typus::Configuration.options[:minute_step] }}</li>
+#{date_select :item, attribute, { :minute_step => Typus::Configuration.options[:minute_step] }, {:disabled => attribute_disabled?(attribute)}}</li>
         HTML
       end
     end
@@ -61,7 +61,7 @@ module AdminFormHelper
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize}</label>
-#{text_area :item, attribute, :class => 'text', :rows => Typus::Configuration.options[:form_rows]}</li>
+#{text_area :item, attribute, :class => 'text', :rows => Typus::Configuration.options[:form_rows], :disabled => attribute_disabled?(attribute)}</li>
       HTML
     end
   end
@@ -83,7 +83,7 @@ module AdminFormHelper
       end
       html << <<-HTML
 <li><label for=\"item_#{attribute}\">#{attribute.titleize.capitalize}</label>
-<select id="item_#{attribute}" name="item[#{attribute}]">
+<select id="item_#{attribute}" name="item[#{attribute}]" <%= attribute_disabled?(attribute) ? 'disabled="disabled"' : '' %>>
   <option value="">Select an option</option>
   #{options}
 </select></li>
@@ -95,11 +95,12 @@ module AdminFormHelper
 
     back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
     related = @model.reflect_on_association(attribute.split("_id").first.to_sym).class_name.constantize
-
+    
+    
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize} <small>#{link_to "Add new", { :controller => attribute.titleize.tableize, :action => 'new', :back_to => back_to, :selected => attribute }, :confirm => "Are you sure you want to leave this page?\nAny unsaved data will be lost." }</small></label>
-#{select :item, attribute, related.find(:all).collect { |p| [p.typus_name, p.id] }.sort_by { |e| e.first }, :prompt => "Select a #{related.name.downcase}"}</li>
+#{select :item, attribute, related.find(:all).collect { |p| [p.typus_name, p.id] }.sort_by { |e| e.first },{:prompt => "Select a #{related.name.downcase}"},{:disabled => attribute_disabled?(attribute)}}</li>
       HTML
     end
 
@@ -122,7 +123,7 @@ module AdminFormHelper
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize} <small>#{comment}</small></label>
-#{text_field :item, attribute, :class => 'text'}</li>
+#{text_field :item, attribute, :class => 'text', :disabled => attribute_disabled?(attribute) }</li>
       HTML
     end
 
@@ -132,7 +133,7 @@ module AdminFormHelper
     returning(String.new) do |html|
       html << <<-HTML
 <li><label for="item_#{attribute}">#{attribute.titleize.capitalize}</label>
-#{password_field :item, attribute, :class => 'text'}</li>
+#{password_field :item, attribute, :class => 'text', :disabled => attribute_disabled?(attribute)}</li>
       HTML
     end
   end
@@ -168,7 +169,7 @@ module AdminFormHelper
         html << "<p>No preview available. (#{content_type.split('/').last})</p>"
       end
 
-      html << "#{file_field :item, attribute.split("_file_name").first}</li>"
+      html << "#{file_field :item, attribute.split("_file_name").first,:disabled => attribute_disabled?(attribute) }</li>"
 
     end
 
@@ -240,6 +241,10 @@ module AdminFormHelper
       end
     end
 
+  end
+  
+  def attribute_disabled?(attribute)
+    !@model.accessible_attributes.include?(attribute)
   end
 
   ##
