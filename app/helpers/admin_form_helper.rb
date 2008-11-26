@@ -244,7 +244,11 @@ module AdminFormHelper
   end
   
   def attribute_disabled?(attribute)
-    !@model.accessible_attributes.include?(attribute)
+    if @model.accessible_attributes.nil?
+      return false
+    else
+      return !@model.accessible_attributes.include?(attribute)
+    end
   end
 
   ##
