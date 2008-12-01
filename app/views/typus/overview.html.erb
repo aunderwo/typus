@@ -1,0 +1,10 @@
+<h2><%= link_to "Dashboard", typus_dashboard_url %> &rsaquo; Overview</h2>
+
+<h3>Options</h3>
+
+<dl>
+  <%- Typus::Configuration.options.each do |key, value| -%>
+  <dt><%= key.to_s.humanize %></dt>
+  <dd><%= !value.to_s.empty? ? value : "none" %></dd>
+  <%- end -%>
+</dl>

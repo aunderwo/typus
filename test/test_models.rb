@@ -1,6 +1,14 @@
-class User < ActiveRecord::Base; end
-class Person < ActiveRecord::Base; end
-class Tag < ActiveRecord::Base; end
+class User < ActiveRecord::Base
+  
+end
+
+class Person < ActiveRecord::Base
+
+end
+
+class Tag < ActiveRecord::Base
+  
+end
 
 class Page < ActiveRecord::Base
 

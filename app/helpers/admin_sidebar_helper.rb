@@ -130,9 +130,10 @@ module AdminSidebarHelper
             html << "<li>#{link_to timeline.titleize, { :params => params.merge(f[0] => timeline, :page => nil) }, :class => switch}</li>\n"
           end
           html << "</ul>\n"
-        when 'integer'
-          model = f[0].split("_id").first.capitalize.camelize.constantize
-          if model.count > 0
+        when 'collection'
+          model = f[0].capitalize.camelize.constantize
+          related_fk = @model.reflect_on_association(f.first.to_sym).primary_key_name
+          if !model.count.zero?
             ##
             # Here we have the option of having a selector.
             #
@@ -143,8 +144,8 @@ module AdminSidebarHelper
             #
             html << "<ul>\n"
             model.find(:all, :order => model.typus_order_by).each do |item|
-              switch = (current_request.include? "#{f[0]}=#{item.id}") ? 'on' : 'off'
-              html << "<li>#{link_to item.typus_name, { :params => params.merge(f[0] => item.id, :page => nil) }, :class => switch}</li>\n"
+              switch = (current_request.include? "#{related_fk}=#{item.id}") ? 'on' : 'off'
+              html << "<li>#{link_to item.typus_name, { :params => params.merge(related_fk => item.id, :page => nil) }, :class => switch }</li>\n"
             end
             html << "</ul>\n"
           else
@@ -162,6 +163,8 @@ module AdminSidebarHelper
           else
             html << "<p>No available values.</p>"
           end
+        else
+          html << "<p>Unknown</p>"
         end
       end
     end

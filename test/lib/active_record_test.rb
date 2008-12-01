@@ -17,6 +17,18 @@ class ActiveRecordTest < Test::Unit::TestCase
     assert_equal expected_fields, TypusUser.model_fields
   end
 
+  def test_should_return_model_fields_for_post
+    expected_fields = [["id", "integer"],
+                       ["title", "string"],
+                       ["body", "text"],
+                       ["status", "boolean"],
+                       ["created_at", "datetime"],
+                       ["updated_at", "datetime"],
+                       ["published_at", "datetime"],
+                       ["user_id", "integer"]]
+    assert_equal expected_fields, Post.model_fields
+  end
+
   def test_should_return_typus_fields_for_list_for_typus_user
     expected_fields = [["first_name", "string"], 
                        ["last_name", "string"], 
@@ -25,6 +37,15 @@ class ActiveRecordTest < Test::Unit::TestCase
                        ["status", "boolean"]]
     assert_equal expected_fields, TypusUser.typus_fields_for('list')
     assert_equal expected_fields, TypusUser.typus_fields_for(:list)
+  end
+
+  def test_should_return_typus_fields_for_list_for_post
+    expected_fields = [["title", "string"],
+                       ["user", "collection"],
+                       ["user_id", "integer"],
+                       ["created_at", "datetime"],
+                       ["status", "selector"]]
+    assert_equal expected_fields, Post.typus_fields_for(:list)
   end
 
   def test_should_return_typus_fields_for_form_for_typus_user
@@ -61,6 +82,15 @@ class ActiveRecordTest < Test::Unit::TestCase
   def test_should_return_filters_for_typus_user
     assert_equal "status, roles, unexisting", Typus::Configuration.config['TypusUser']['filters']
     assert_equal [["status", "boolean"], ["roles", "string"]], TypusUser.typus_filters
+  end
+
+  def test_should_return_filters_for_post
+    expected = [["status", "boolean"], 
+                ["created_at", "datetime"], 
+                ["user", "collection"], 
+                ["user_id", "integer"]]
+    assert_equal expected.map { |i| i.first }.join(', '), Typus::Configuration.config['Post']['filters']
+    assert_equal expected, Post.typus_filters
   end
 
   def test_should_return_actions_on_list_for_typus_user

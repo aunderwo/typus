@@ -9,20 +9,7 @@ module AdminTableHelper
 
       html << "<table>"
 
-      ##
-      # Header of the table
-      #
-      html << "<tr>"
-      model.typus_fields_for(fields).map(&:first).each do |field|
-        order_by = field
-        sort_order = (params[:sort_order] == "asc") ? "desc" : "asc"
-        if model.model_fields.map(&:first).include?(field)
-          html << "<th>#{link_to "<div class=\"#{sort_order}\">#{field.titleize.capitalize}</div>", { :params => params.merge( :order_by => order_by, :sort_order => sort_order) }}</th>"
-        else
-          html << "<th>#{field.titleize.capitalize}</th>"
-        end
-      end
-      html << "<th>&nbsp;</th>\n</tr>"
+      html << typus_table_header(model, fields)
 
       items.each do |item|
 
@@ -52,23 +39,23 @@ module AdminTableHelper
 
         case params[:action]
         when 'index'
-          @perform = link_to image_tag("admin/trash.gif"), { :controller => "admin/#{model.name.tableize}", 
-                                                             :action => 'destroy', 
-                                                             :id => item.id }, 
-                                                             :confirm => "Remove entry?", 
-                                                             :method => :delete
+          perform = link_to image_tag("admin/trash.gif"), { :controller => "admin/#{model.name.tableize}", 
+                                                            :action => 'destroy', 
+                                                            :id => item.id }, 
+                                                            :confirm => "Remove entry?", 
+                                                            :method => :delete
         else
-          @perform = link_to image_tag("admin/trash.gif"), { :controller => "admin/#{model.name.tableize}", 
-                                                             :action => "unrelate", 
-                                                             :id => item.id, 
-                                                             :model => @model, 
-                                                             :model_id => params[:id] }, 
-                                                             :confirm => "Remove #{model.humanize.singularize.downcase} \"#{item.typus_name}\" from #{@model.name}?"
+          perform = link_to image_tag("admin/trash.gif"), { :controller => "admin/#{model.name.tableize}", 
+                                                            :action => "unrelate", 
+                                                            :id => item.id, 
+                                                            :model => @model, 
+                                                            :model_id => params[:id] }, 
+                                                            :confirm => "Remove #{model.humanize.singularize.downcase} \"#{item.typus_name}\" from #{@model.name}?"
         end
 
       end
 
-      html << "<td width=\"10px\">#{@perform}</td>\n</tr>"
+      html << "<td width=\"10px\">#{perform}</td>\n</tr>"
 
     end
 
@@ -78,12 +65,36 @@ module AdminTableHelper
 
   end
 
+  ##
+  # Header of the table
+  #
+  def typus_table_header(model, fields)
+    returning(String.new) do |html|
+      html << "<tr>"
+      model.typus_fields_for(fields).map(&:first).each do |field|
+        order_by = field
+        sort_order = (params[:sort_order] == 'asc') ? 'desc' : 'asc'
+        if model.model_fields.map(&:first).include?(field) && params[:action] == 'index'
+          html << "<th>#{link_to "<div class=\"#{sort_order}\">#{field.titleize.capitalize}</div>", { :params => params.merge(:order_by => order_by, :sort_order => sort_order) }}</th>"
+        else
+          html << "<th>#{field.titleize.capitalize}</th>"
+        end
+      end
+      html << "<th>&nbsp;</th>\n</tr>"
+    end
+  end
+
   def typus_table_collection_field(item, column)
-    "<td>#{link_to item.send(column[0].split("_id").first).typus_name, :controller => "admin/#{column[0].split("_id").first.pluralize}", :action => "edit", :id => item.send(column[0])}</td>"
+    "<td>#{link_to item.send(column[0].split('_id').first).typus_name, :controller => "admin/#{column[0].split("_id").first.pluralize}", :action => "edit", :id => item.send(column[0])}</td>"
   rescue
     "<td></td>"
   end
 
+  ##
+  # When detection of the attributes is made a default attribute 
+  # type is set. From the string_field we display other content 
+  # types.
+  #
   def typus_table_string_field(item, column, fields)
     returning(String.new) do |html|
       if item.class.typus_fields_for(fields).first == column
@@ -92,9 +103,15 @@ module AdminTableHelper
 <br /><small>#{"Custom actions go here, but only if exist." if Typus::Configuration.options[:actions_on_table]}</small></td>
         HTML
       else
-        html << <<-HTML
+        if item.send(column[0]).kind_of?(Array)
+          html << <<-HTML
+<td>#{item.send(column[0]).map { |i| i.typus_name }.join(', ')}</td>
+          HTML
+        else
+          html << <<-HTML
 <td>#{item.send(column[0])}</td>
-        HTML
+          HTML
+        end
       end
     end
   end

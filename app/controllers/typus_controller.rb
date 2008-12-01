@@ -130,6 +130,9 @@ class TypusController < ApplicationController
 
   end
 
+  def overview
+  end
+
 private
 
   def recover_password_disabled?

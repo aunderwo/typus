@@ -26,8 +26,8 @@ ActiveSupport::Dependencies.load_paths = [ ]
 # to test the plugin without touching the application.
 #
 %w( models controllers helpers ).each do |folder|
-  ActiveSupport::Dependencies.load_paths << File.join(RAILS_ROOT, 'vendor/plugins/typus/app', folder)
-  ActiveSupport::Dependencies.load_paths << File.join(RAILS_ROOT, 'vendor/plugins/typus/test/fixtures/app', folder)
+  ActiveSupport::Dependencies.load_paths << File.join(Rails.root, 'vendor/plugins/typus/app', folder)
+  ActiveSupport::Dependencies.load_paths << File.join(Rails.root, 'vendor/plugins/typus/test/fixtures/app', folder)
 end
 
 ##
@@ -35,7 +35,7 @@ end
 #
 ActionController::Base.view_paths = []
 %w( app/views test/fixtures/app/views ).each do |folder|
-  ActionController::Base.append_view_path(File.join(RAILS_ROOT, 'vendor/plugins/typus', folder))
+  ActionController::Base.append_view_path(File.join(Rails.root, 'vendor/plugins/typus', folder))
 end
 
 require 'test/unit'

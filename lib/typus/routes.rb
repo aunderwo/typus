@@ -4,13 +4,14 @@ end
 
 ActionController::Routing::Routes.draw do |map|
 
-  map.with_options :controller => 'typus' do |i|
-    i.typus_dashboard "admin", :action => 'dashboard'
-    i.typus_login "admin/login", :action => 'login'
-    i.typus_logout "admin/logout", :action => 'logout'
-    i.typus_setup "admin/setup", :action => 'setup'
-    i.typus_recover_password "admin/recover_password", :action => 'recover_password'
-    i.typus_reset_password "admin/reset_password", :action => 'reset_password'
+  map.with_options :controller => 'typus', :path_prefix => Typus::Configuration.options[:prefix] do |i|
+    i.typus_dashboard "", :action => 'dashboard'
+    i.typus_overview "overview", :action => 'overview'
+    i.typus_login "login", :action => 'login'
+    i.typus_logout "logout", :action => 'logout'
+    i.typus_setup "setup", :action => 'setup'
+    i.typus_recover_password "recover_password", :action => 'recover_password'
+    i.typus_reset_password "reset_password", :action => 'reset_password'
   end
 
   map.namespace :admin do |admin|
@@ -19,7 +20,7 @@ ActionController::Routing::Routes.draw do |map|
       m.constantize.typus_actions_for(:index).each { |a| collection[a] = :any }
       member = { :position => :any, :toggle => :any, :relate => :any, :unrelate => :any }
       m.constantize.typus_actions_for(:edit).each { |a| member[a] = :any }
-      admin.resources m.tableize, :collection => collection, :member => member
+      admin.resources m.tableize, :collection => collection, :member => member, :path_prefix => Typus::Configuration.options[:prefix]
     end
   end
 

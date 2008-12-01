@@ -401,6 +401,22 @@ strong {
     color: black;
   }
 
+/* definition lists
+---------------------------------------------------------- */
+
+dl {
+}
+
+  dt {
+    float: left;
+    font-weight: bold;
+    width: 200px;
+  }
+
+  dd {
+    margin: 0 0 0 220px;
+  }
+
 /* rails errors
 ---------------------------------------------------------- */
 

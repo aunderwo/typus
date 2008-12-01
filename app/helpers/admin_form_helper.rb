@@ -94,13 +94,14 @@ module AdminFormHelper
   def typus_collection_field(attribute, value)
 
     back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
-    related = @model.reflect_on_association(attribute.split("_id").first.to_sym).class_name.constantize
-    
-    
+
+    related = @model.reflect_on_association(attribute.to_sym).class_name.constantize
+    related_fk = @model.reflect_on_association(attribute.to_sym).primary_key_name
+
     returning(String.new) do |html|
       html << <<-HTML
-<li><label for="item_#{attribute}">#{attribute.titleize.capitalize} <small>#{link_to "Add new", { :controller => attribute.titleize.tableize, :action => 'new', :back_to => back_to, :selected => attribute }, :confirm => "Are you sure you want to leave this page?\nAny unsaved data will be lost." }</small></label>
-#{select :item, attribute, related.find(:all).collect { |p| [p.typus_name, p.id] }.sort_by { |e| e.first },{:prompt => "Select a #{related.name.downcase}"},{:disabled => attribute_disabled?(attribute)}}</li>
+<li><label for="item_#{attribute}">#{related_fk.titleize} <small>#{link_to "Add new", { :controller => attribute.titleize.tableize, :action => 'new', :back_to => back_to, :selected => attribute }, :confirm => "Are you sure you want to leave this page?\nAny unsaved data will be lost." }</small></label>
+#{select :item, related_fk, related.find(:all).collect { |p| [p.typus_name, p.id] }.sort_by { |e| e.first }, { :include_blank => true }, { :disabled => attribute_disabled?(attribute) } }</li>
       HTML
     end
 
@@ -169,7 +170,7 @@ module AdminFormHelper
         html << "<p>No preview available. (#{content_type.split('/').last})</p>"
       end
 
-      html << "#{file_field :item, attribute.split("_file_name").first,:disabled => attribute_disabled?(attribute) }</li>"
+      html << "#{file_field :item, attribute.split("_file_name").first, :disabled => attribute_disabled?(attribute)}</li>"
 
     end
 
@@ -242,7 +243,7 @@ module AdminFormHelper
     end
 
   end
-  
+
   def attribute_disabled?(attribute)
     if @model.accessible_attributes.nil?
       return false

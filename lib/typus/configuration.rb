@@ -49,7 +49,8 @@ module Typus
                   :password => 8, 
                   :special_characters_on_password => false, 
                   :ssl => false, 
-                  :actions_on_table => false }
+                  :actions_on_table => false, 
+                  :prefix => 'admin' }
 
     mattr_accessor :options
 
@@ -68,7 +69,7 @@ module Typus
 
       @@config = {}
       folders.each do |folder|
-        @@config = @@config.merge(YAML.load_file("#{RAILS_ROOT}/#{folder}"))
+        @@config = @@config.merge(YAML.load_file("#{Rails.root}/#{folder}"))
       end
 
       return @@config
@@ -93,7 +94,7 @@ module Typus
       @@roles = { 'admin' => {} }
 
       folders.each do |folder|
-        YAML.load_file("#{RAILS_ROOT}/#{folder}").each do |key, value|
+        YAML.load_file("#{Rails.root}/#{folder}").each do |key, value|
           begin
             @@roles[key] = @@roles[key].merge(value)
           rescue

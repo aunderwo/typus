@@ -283,7 +283,7 @@ private
   # Select which template to render.
   #
   def select_template(template, model = @model)
-    if File.exists?("#{RAILS_ROOT}/app/views/admin/#{model.name.tableize}/#{template}.html.erb")
+    if File.exists?("#{Rails.root}/app/views/admin/#{model.name.tableize}/#{template}.html.erb")
       render :template => "admin/#{model.name.tableize}/#{template}"
     else
       render :template => "admin/#{template}"

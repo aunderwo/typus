@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../test_helper'
 class ConfigurationTest < Test::Unit::TestCase
 
   def test_should_verify_configuration_options
-    initializer = "#{RAILS_ROOT}/config/initializers/typus.rb"
+    initializer = "#{Rails.root}/config/initializers/typus.rb"
     if !File.exists?(initializer)
       assert_equal "Typus", Typus::Configuration.options[:app_name]
       assert_equal "", Typus::Configuration.options[:app_description]

@@ -95,7 +95,7 @@ module Typus
       ##
       # Create app/controllers/admin if doesn't exist.
       #
-      admin_controllers_folder = "#{RAILS_ROOT}/app/controllers/admin"
+      admin_controllers_folder = "#{Rails.root}/app/controllers/admin"
       Dir.mkdir(admin_controllers_folder) unless File.directory?(admin_controllers_folder)
 
       ##
@@ -108,13 +108,13 @@ module Typus
       ##
       # Create app/views/admin if doesn't exist.
       #
-      admin_views_folder = "#{RAILS_ROOT}/app/views/admin"
+      admin_views_folder = "#{Rails.root}/app/views/admin"
       Dir.mkdir(admin_views_folder) unless File.directory?(admin_views_folder)
 
       ##
       # Create app/helpers/admin if doesn't exist.
       #
-      admin_helpers_folder = "#{RAILS_ROOT}/app/helpers/admin"
+      admin_helpers_folder = "#{Rails.root}/app/helpers/admin"
       Dir.mkdir(admin_helpers_folder) unless File.directory?(admin_helpers_folder)
 
       ##
@@ -127,7 +127,7 @@ module Typus
       ##
       # Create test/functional/admin if doesn't exist.
       #
-      admin_controller_tests_folder = "#{RAILS_ROOT}/test/functional/admin"
+      admin_controller_tests_folder = "#{Rails.root}/test/functional/admin"
       Dir.mkdir(admin_controller_tests_folder) unless File.directory?(admin_controller_tests_folder)
 
       ##

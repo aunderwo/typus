@@ -18,8 +18,8 @@ Category:
 
 Post:
   fields:
-    list: title, created_at, status
-    form: title, body, created_at, status
+    list: title, user, user_id, created_at, status
+    form: title, user, body, created_at, status
     relationship: title, created_at
     options:
       selectors: status
@@ -32,7 +32,7 @@ Post:
     index: cleanup
     edit: send_as_newsletter, preview
   related: categories
-  filters: status, created_at, category
+  filters: status, created_at, user, user_id
   search: title
   order_by: title, -created_at
   application: Blog

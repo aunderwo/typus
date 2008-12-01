@@ -18,13 +18,13 @@ class TypusFilesGenerator < Rails::Generator::Base
         end
       end
 
-      application = RAILS_ROOT.split("/").last
+      application = Rails.root.split("/").last
 
       ##
       # For creating `typus.yml` and `typus_roles.yml` we need first to detect 
       # the available AR models of the application, not the plugins.
       #
-      Dir.chdir(File.join(RAILS_ROOT, "app/models"))
+      Dir.chdir(File.join(Rails.root, "app/models"))
       models, ar_models = Dir["*.rb"], []
 
       models.each do |model|
@@ -37,7 +37,7 @@ class TypusFilesGenerator < Rails::Generator::Base
       ##
       # configuration files
       #
-      folder = "#{RAILS_ROOT}/config/typus"
+      folder = "#{Rails.root}/config/typus"
       Dir.mkdir(folder) unless File.directory?(folder)
 
       files = %w( typus.yml typus_roles.yml application.yml application_roles.yml )
@@ -54,8 +54,8 @@ class TypusFilesGenerator < Rails::Generator::Base
                  "config/initializers/typus.rb", 
                  :assigns => { :application => application }
 
-      ["#{RAILS_ROOT}/public/stylesheets/admin", 
-      "#{RAILS_ROOT}/public/images/admin" ].each do |folder|
+      ["#{Rails.root}/public/stylesheets/admin", 
+      "#{Rails.root}/public/images/admin" ].each do |folder|
         Dir.mkdir(folder) unless File.directory?(folder)
       end
 

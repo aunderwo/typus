@@ -18,6 +18,7 @@
 #     show: rebuild
 #   order_by: created_at
 #   relationships:
+#     belongs_to:
 #     has_and_belongs_to_many:
 #     has_many:
 #   filters: status, created_at, category_id
@@ -45,8 +46,9 @@
     edit:
   order_by:
   relationships:
-    has_and_belongs_to_many:
-    has_many:
+    <%- [:belongs_to, :has_and_belongs_to_many, :has_many].each do |relationship| -%>
+    <%= relationship.to_s %>: <%= model.reflect_on_all_associations(relationship).map { |i| i.name.to_s }.join(', ') %>
+    <%- end -%>
   filters:
   search:
   application: <%= application %>
