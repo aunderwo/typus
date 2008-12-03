@@ -169,9 +169,9 @@ You can add `slug` a as attribute and it'll be shown on the lists.
 
 ### External Forms
 
-    relationships:
-      has_and_belongs_to_many: users
-      has_many: projects
+Typus will detect automatically which kind of relationships has the model.
+
+    relationships: users, projects
 
 ### Filters
 

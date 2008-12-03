@@ -18,19 +18,20 @@
 #     show: rebuild
 #   order_by: created_at
 #   relationships:
-#     belongs_to:
-#     has_and_belongs_to_many:
-#     has_many:
 #   filters: status, created_at, category_id
 #   search: title, body
 #   application: Application
 #   description: Some text to describe the model
 #
 ###
-
 <%- ar_models.each do |model| -%>
 <%- list = model.columns.collect { |i| [ i.name, i.sql_type ] if i.sql_type != 'text' }.compact.map(&:first) -%>
 <%- form = model.columns.collect { |i| [ i.name, i.sql_type ] if i.name != 'id' }.compact.map(&:first) -%>
+<%- relationships = [ ] -%>
+<%- [:belongs_to, :has_and_belongs_to_many, :has_many].each do |relationship| -%>
+ <%- relationships += model.reflect_on_all_associations(relationship).map { |i| i.name.to_s } -%>
+<%- end -%>
+
 <%= model %>:
   fields:
     list: <%= list.map.join(', ') %>
@@ -45,13 +46,9 @@
     index:
     edit:
   order_by:
-  relationships:
-    <%- [:belongs_to, :has_and_belongs_to_many, :has_many].each do |relationship| -%>
-    <%= relationship.to_s %>: <%= model.reflect_on_all_associations(relationship).map { |i| i.name.to_s }.join(', ') %>
-    <%- end -%>
+  relationships: <%= relationships.sort.join(', ') %>
   filters:
   search:
   application: <%= application %>
   description:
-
 <%- end -%>

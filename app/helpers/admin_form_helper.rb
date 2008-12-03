@@ -176,72 +176,77 @@ module AdminFormHelper
 
   end
 
-  def typus_form_has_many
+  def typus_relationships
 
-    back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
+    @back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
 
     returning(String.new) do |html|
+      @item_relationships.each do |relationship|
+        case @model.reflect_on_association(relationship.to_sym).macro
+        when :has_many
+          html << typus_form_has_many(relationship)
+        when :has_and_belongs_to_many
+          html << typus_form_has_and_belongs_to_many(relationship)
+        end
+      end
+    end
 
-      @item_has_many.each do |field|
-        html << <<-HTML
+  end
+
+  def typus_form_has_many(field)
+    returning(String.new) do |html|
+      html << <<-HTML
 <div class="box_relationships">
   <h2>
   #{link_to field.titleize, :controller => field}
-  <small>#{link_to "Add new", :controller => field, :action => 'new', :back_to => back_to, :model => @model, :model_id => @item.id}</small>
+  <small>#{link_to "Add new", :controller => field, :action => 'new', :back_to => @back_to, :model => @model, :model_id => @item.id}</small>
   </h2>
-        HTML
-        @items = @model.find(params[:id]).send(field)
-        unless @items.empty?
-          html << build_table(@items[0].class, 'relationship', @items)
-        else
-          html << <<-HTML
-  <div id="flash" class="notice"><p>There are no #{field.titleize.downcase}.</p></div>
-          HTML
-        end
+      HTML
+      @items = @model.find(params[:id]).send(field)
+      unless @items.empty?
+        html << build_table(@items[0].class, 'relationship', @items)
+      else
         html << <<-HTML
-</div>
+<div id="flash" class="notice"><p>There are no #{field.titleize.downcase}.</p></div>
         HTML
       end
+      html << <<-HTML
+</div>
+      HTML
     end
   end
 
-  def typus_form_has_and_belongs_to_many
-
-    back_to = "/" + ([] << params[:controller] << params[:id]<< params[:action]).compact.join('/')
-
+  def typus_form_has_and_belongs_to_many(field)
     returning(String.new) do |html|
-      @item_has_and_belongs_to_many.each do |field|
-        model_to_relate = field.singularize.camelize.constantize
-        html << <<-HTML
+      model_to_relate = field.singularize.camelize.constantize
+      html << <<-HTML
 <div class="box_relationships">
   <h2>
   #{link_to field.titleize, :controller => field}
-  <small>#{link_to "Add new", :controller => field, :action => 'new', :back_to => back_to, :model => @model, :model_id => @item.id}</small>
+  <small>#{link_to "Add new", :controller => field, :action => 'new', :back_to => @back_to, :model => @model, :model_id => @item.id}</small>
   </h2>
-        HTML
-        items_to_relate = (model_to_relate.find(:all) - @item.send(field))
-        unless items_to_relate.empty?
-          html << <<-HTML
+      HTML
+      items_to_relate = (model_to_relate.find(:all) - @item.send(field))
+      unless items_to_relate.empty?
+        html << <<-HTML
   #{form_tag :action => 'relate'}
   #{hidden_field :related, :model, :value => field.modelize}
   <p>#{ select :related, :id, items_to_relate.collect { |f| [f.typus_name, f.id] }.sort_by { |e| e.first } } &nbsp; #{submit_tag "Add", :class => 'button'}</form></p>
-          HTML
-        end
-        current_model = @model.name.singularize.camelize.constantize
-        @items = current_model.find(params[:id]).send(field)
-        unless @items.empty?
-          html << build_table(field.modelize, 'relationship')
-        else
-          html << <<-HTML
-  <div id="flash" class="notice"><p>There are no #{field.titleize.downcase}.</p></div>
-          HTML
-        end
-        html << <<-HTML
-</div>
         HTML
       end
+      current_model = @model.name.singularize.camelize.constantize
+      @items = current_model.find(params[:id]).send(field)
+      unless @items.empty?
+        html << build_table(field.modelize, 'relationship')
+      else
+        html << <<-HTML
+  <div id="flash" class="notice"><p>There are no #{field.titleize.downcase}.</p></div>
+        HTML
+      end
+      html << <<-HTML
+</div>
+      HTML
     end
-
   end
 
   def attribute_disabled?(attribute)

@@ -127,10 +127,8 @@ class ActiveRecordTest < Test::Unit::TestCase
   end
 
   def test_should_return_relationships_for_post
-    assert_equal %w( tags ), Post.typus_relationships_for('has_and_belongs_to_many')
-    assert_equal %w( tags ), Post.typus_relationships_for(:has_and_belongs_to_many)
-    assert Post.typus_relationships_for('has_many').empty?
-    assert Post.typus_relationships_for(:has_many).empty?
+    assert_equal %w( tags ), Post.typus_relationships
+    assert !Post.typus_relationships.empty?
   end
 
   def test_should_return_order_by_for_model

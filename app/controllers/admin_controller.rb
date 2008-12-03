@@ -275,8 +275,7 @@ private
   #
   def form_fields
     @item_fields = @model.typus_fields_for(:form)
-    @item_has_many = @model.typus_relationships_for(:has_many)
-    @item_has_and_belongs_to_many = @model.typus_relationships_for(:has_and_belongs_to_many)
+    @item_relationships = @model.typus_relationships
   end
 
   ##
