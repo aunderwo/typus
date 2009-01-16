@@ -6,23 +6,24 @@
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
   <title><%= page_title %></title>
+  <%= stylesheet_link_tag "admin/reset", :media => "screen" %>
   <%= stylesheet_link_tag "admin/screen", :media => "screen" %>
 </head>
 
 <body>
 
   <div id="top_dialog">
-    <%= typus_block :top, :login %>
+    <%= typus_block :location => 'login', :partial => 'top' %>
   </div>
 
   <div id="dialog">
-    <h1><%= link_to Typus::Configuration.options[:app_name], typus_login_url %></h1>
+    <h1><%= link_to Typus::Configuration.options[:app_name], typus_login_path %></h1>
     <%= display_flash_message %>
     <%= yield %>
   </div>
 
   <div id="bottom_dialog">
-    <%= typus_block :bottom, :login %>
+    <%= typus_block :location => 'login', :partial => 'bottom' %>
   </div>
 
 </body>

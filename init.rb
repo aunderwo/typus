@@ -1,3 +1,10 @@
+require 'typus'
+require 'sha1'
+
+##
+# Load paths. (This will be the first thing I'll remove once 
+# Rails 2.3/3 is released.)
+#
 
 ActionController::Base.append_view_path(File.join(File.dirname(__FILE__), 'app', 'views'))
 
@@ -5,15 +12,15 @@ ActionController::Base.append_view_path(File.join(File.dirname(__FILE__), 'app',
   ActiveSupport::Dependencies.load_paths << File.join(File.dirname(__FILE__), 'app', folder)
 end
 
-require 'sha1'
-require 'typus'
-
 ##
-# And finally we enable Typus
+# Typus.enable and run the generator unless we are testing the plugin.
+# Do not Typus.enable or generate files if we are running a rails 
+# generator.
 #
-Typus.enable
 
-##
-# Autogenerator for the models.
-#
-Typus.generator unless Rails.env.test?
+scripts = %w( script/generate script/destroy )
+
+unless scripts.include?($0)
+  Typus.enable
+  Typus.generator unless Rails.env.test?
+end

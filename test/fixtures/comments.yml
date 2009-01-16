@@ -1,0 +1,11 @@
+first:
+  id: 1
+  email: john@example.com
+  body: Body of the comment
+  post_id: 1
+
+second:
+  id: 2
+  email: me@example.com
+  body: Body of the comment
+  post_id: 1

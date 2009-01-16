@@ -4,7 +4,12 @@ module Typus
 
     module Reloader
 
+      ##
+      # Reload configuration files and roles when application is 
+      # running on development.
+      #
       def reload_config_et_roles
+        return unless Rails.env.development?
         logger.info "[typus] Configuration files have been reloaded."
         Typus::Configuration.roles!
         Typus::Configuration.config!
@@ -19,38 +24,23 @@ module Typus
     # Example:
     #
     #   Typus::Configuration.options[:app_name] = "Your App Name"
-    #   Typus::Configuration.options[:app_description] = "Your App Description"
-    #   Typus::Configuration.options[:per_page] = 15
-    #   Typus::Configuration.options[:toggle] = true
-    #   Typus::Configuration.options[:root] = 'admin'
-    #   Typus::Configuration.options[:recover_password] = false
-    #   Typus::Configuration.options[:disable_typus_enabled_plugins] = true
-    #   Typus::Configuration.options[:email] = 'admin@example.com'
-    #   Typus::Configuration.options[:password] = 8
-    #   Typus::Configuration.options[:special_characters_on_password] = true
-    #   Typus::Configuration.options[:ssl] = false
-    #
-    # Experimental options: (don't use in production)
-    #
-    #   Typus::Configuration.options[:actions_on_table] = false
     #
     @@options = { :app_name => 'Typus', 
-                  :app_description => '', 
                   :per_page => 15, 
-                  :version => '', 
                   :form_rows => 10, 
-                  :form_columns => 10, 
+                  :sidebar_selector => 10, 
                   :minute_step => 5, 
                   :toggle => true, 
                   :edit_after_create => true, 
                   :root => 'admin', 
                   :recover_password => true, 
                   :email => 'admin@example.com', 
-                  :password => 8, 
-                  :special_characters_on_password => false, 
                   :ssl => false, 
-                  :actions_on_table => false, 
-                  :prefix => 'admin' }
+                  :prefix => 'admin', 
+                  :icon_on_boolean => true, 
+                  :nil => 'nil', 
+                  :user_class_name => 'TypusUser', 
+                  :user_fk => 'typus_user_id' }
 
     mattr_accessor :options
 
@@ -61,15 +51,16 @@ module Typus
     #
     def self.config!
 
-      folders = if Rails.env.test?
-                  ["vendor/plugins/typus/test/config/typus.yml"]
-                else
-                  Dir["config/typus/*"] - Dir["config/typus/*"].grep(/roles.yml/)
-                end
+      files = if Rails.env.test?
+                ["vendor/plugins/typus/test/config/typus.yml"]
+              else
+                Dir["config/typus/*"] - Dir["config/typus/*"].grep(/roles.yml/)
+              end
 
       @@config = {}
-      folders.each do |folder|
-        @@config = @@config.merge(YAML.load_file("#{Rails.root}/#{folder}"))
+      files.each do |file|
+        data = YAML.load_file("#{Rails.root}/#{file}")
+        @@config = @@config.merge(data) if data
       end
 
       return @@config
@@ -85,16 +76,18 @@ module Typus
     #
     def self.roles!
 
-      folders = if Rails.env.test?
-                  ["vendor/plugins/typus/test/config/typus_roles.yml"]
-                else
-                  Dir["config/typus/*_roles.yml"]
-                end
+      files = if Rails.env.test?
+                ["vendor/plugins/typus/test/config/typus_roles.yml"]
+              else
+                Dir["config/typus/*_roles.yml"]
+              end
 
-      @@roles = { 'admin' => {} }
+      @@roles = { options[:root] => {} }
 
-      folders.each do |folder|
-        YAML.load_file("#{Rails.root}/#{folder}").each do |key, value|
+      files.each do |file|
+        data = YAML.load_file("#{Rails.root}/#{file}")
+        next unless data
+        data.each do |key, value|
           begin
             @@roles[key] = @@roles[key].merge(value)
           rescue
@@ -103,7 +96,7 @@ module Typus
         end
       end
 
-      return @@roles
+      return @@roles.compact
 
     end
 

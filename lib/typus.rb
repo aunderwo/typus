@@ -6,33 +6,21 @@ module Typus
     # Returns a list of all the applications.
     #
     def applications
-      apps = []
-      Typus::Configuration.config.each do |key, value|
-        apps << value['application']
-      end
-      return apps.compact.uniq.sort
+      Typus::Configuration.config.collect { |i| i.last['application'] }.compact.uniq.sort
     end
 
     ##
     # Returns a list of the modules of an application.
     #
     def application(name)
-      modules = []
-      Typus::Configuration.config.each do |key, value|
-        modules << key if value['application'] == name
-      end
-      return modules.sort
+      Typus::Configuration.config.collect { |i| i.first if i.last['application'] == name }.compact.uniq.sort
     end
 
     ##
     # Returns a list of the submodules of a module.
     #
     def module(name)
-      submodules = []
-      Typus::Configuration.config.each do |key, value|
-        submodules << key if value['module'] == name
-      end
-      return submodules.sort
+      Typus::Configuration.config.collect { |i| i.first if i.last['module'] == name }.compact.uniq.sort
     end
 
     ##
@@ -45,10 +33,11 @@ module Typus
       Typus::Configuration.config[model][name] || ''
     end
 
+    ##
+    # Return a list of models.
+    #
     def models
-      models = []
-      Typus::Configuration.config.to_a.each { |m| models << m[0] }
-      return models.sort
+      Typus::Configuration.config.map { |i| i.first }.sort
     end
 
     def resources
@@ -76,71 +65,75 @@ module Typus
       Typus::Configuration.config[modulo]['description']
     end
 
+    def user_class
+      Typus::Configuration.options[:user_class_name].constantize
+    end
+
+    def user_fk
+      Typus::Configuration.options[:user_fk]
+    end
+
+    ##
+    # Load configuration files, translations, modules and extensions.
+    #
     def enable
-      Typus::Configuration.config!
-      Typus::Configuration.roles!
-      require File.dirname(__FILE__) + "/../test/test_models" if Rails.env.test?
-      require 'typus/active_record'
-      require 'typus/routes'
+
       require 'typus/string'
       require 'typus/hash'
+
+      Typus::Configuration.config!
+      Typus::Configuration.roles!
+      I18n.load_path += Dir[File.join("#{Rails.root}/vendor/plugins/typus/config/locales", '*.{rb,yml}')]
+
+      require File.dirname(__FILE__) + "/../test/test_models" if Rails.env.test?
+
+      require 'typus/user'
+      require 'typus/active_record'
+      require 'typus/routes'
+      require 'typus/export'
       require 'typus/authentication'
       require 'typus/object'
       require 'typus/greetings'
+
       require 'vendor/paginator'
+
     end
 
     def generator
 
-      ##
       # Create app/controllers/admin if doesn't exist.
-      #
       admin_controllers_folder = "#{Rails.root}/app/controllers/admin"
       Dir.mkdir(admin_controllers_folder) unless File.directory?(admin_controllers_folder)
 
-      ##
       # Get a list of all the available app/controllers/admin
-      #
       admin_controllers = Dir['vendor/plugins/*/app/controllers/admin/*.rb']
       admin_controllers += Dir['app/controllers/admin/*.rb']
-      admin_controllers = admin_controllers.map { |i| i.split("/").last }
+      admin_controllers = admin_controllers.map { |i| i.split('/').last }
 
-      ##
       # Create app/views/admin if doesn't exist.
-      #
       admin_views_folder = "#{Rails.root}/app/views/admin"
       Dir.mkdir(admin_views_folder) unless File.directory?(admin_views_folder)
 
-      ##
       # Create app/helpers/admin if doesn't exist.
-      #
       admin_helpers_folder = "#{Rails.root}/app/helpers/admin"
       Dir.mkdir(admin_helpers_folder) unless File.directory?(admin_helpers_folder)
 
-      ##
       # Get a list of all the available app/helpers/admin
-      #
       admin_helpers = Dir['vendor/plugins/*/app/helpers/admin/*.rb']
       admin_helpers += Dir['app/helpers/admin/*.rb']
-      admin_helpers = admin_helpers.map { |i| i.split("/").last }
+      admin_helpers = admin_helpers.map { |i| i.split('/').last }
 
-      ##
       # Create test/functional/admin if doesn't exist.
-      #
       admin_controller_tests_folder = "#{Rails.root}/test/functional/admin"
       Dir.mkdir(admin_controller_tests_folder) unless File.directory?(admin_controller_tests_folder)
 
-      ##
       # Get a list of all the available app/helpers/admin
-      #
       admin_controller_tests = Dir['vendor/plugins/*/test/functional/admin/*.rb']
       admin_controller_tests += Dir['test/functional/admin/*.rb']
-      admin_controller_tests = admin_controller_tests.map { |i| i.split("/").last }
+      admin_controller_tests = admin_controller_tests.map { |i| i.split('/').last }
 
-      ##
       # Generate unexisting controllers for resources which are not tied to
       # a model.
-      #
       self.resources.each do |resource|
 
         controller_filename = "#{resource.underscore}_controller.rb"
@@ -176,7 +169,6 @@ end
 
         end
 
-        ##
         # And now we create the view.
         view_folder = "#{admin_views_folder}/#{resource.underscore}"
         view_filename = "index.html.erb"
@@ -208,16 +200,11 @@ end
 
       models = self.models
 
-      ##
       # Generate unexisting controllers for resources which are tied to a 
       # model.
-      #
       models.each do |model|
 
-        ##
         # Controller app/controllers/admin/*
-        #
-
         controller_filename = "#{model.tableize}_controller.rb"
         controller_location = "#{admin_controllers_folder}/#{controller_filename}"
 
@@ -263,9 +250,7 @@ end
           puts "[typus] Admin::#{model.pluralize}Controller successfully created."
         end
 
-        ##
         # Helper app/helpers/admin/*
-        #
         helper_filename = "#{model.tableize}_helper.rb"
         helper_location = "#{admin_helpers_folder}/#{helper_filename}"
 
@@ -287,9 +272,7 @@ end
           puts "[typus] Admin::#{model.pluralize}Helper successfully created."
         end
 
-        ##
         # Test test/functional/admin/*_test.rb
-        #
         test_filename = "#{model.tableize}_controller_test.rb"
         test_location = "#{admin_controller_tests_folder}/#{test_filename}"
 

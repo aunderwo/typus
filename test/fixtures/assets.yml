@@ -1,11 +1,11 @@
 first:
   id: 1
   caption: This is the caption.
-  assetable_type: Page
-  assetable_id: 1
+  resource_type: Post
+  resource_id: 1
 
 second:
   id: 2
   caption: This is the second caption.
-  assetable_type: Page
-  assetable_id: 1
+  resource_type: Post
+  resource_id: 1

@@ -1,6 +1,6 @@
-<h2><%= link_to "Dashboard", typus_dashboard_url %> &rsaquo; Overview</h2>
+<h2><%= link_to "Dashboard", typus_dashboard_path %> &rsaquo; <%= t("Overview") %></h2>
 
-<h3>Options</h3>
+<h3><%= t("Options") %></h3>
 
 <dl>
   <%- Typus::Configuration.options.each do |key, value| -%>

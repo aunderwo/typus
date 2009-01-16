@@ -12,6 +12,8 @@
 #       read_only:
 #       auto_generated:
 #       questions:
+#       date_formats:
+#         created_at: post_long
 #   actions:
 #     index: cleanup
 #     edit: send_as_newsletter

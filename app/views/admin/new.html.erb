@@ -1,25 +1,25 @@
 <% content_for :sidebar do %>
-  <%= typus_block :new_sidebar %>
+  <%= typus_block :model => @resource[:self], :partial => :new_sidebar %>
   <%= actions %>
 <% end %>
 
-<%= typus_block :new %>
+<%= typus_block :model => @resource[:self], :partial => :new %>
 
 <%= display_link_to_previous if params[:back_to] %>
 
-<h2><%= link_to "Dashboard", typus_dashboard_url %> &rsaquo; <%= link_to @model.name.pluralize.titleize, :action => "index" %> &rsaquo; New</h2>
+<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= link_to @resource[:class_name_humanized].pluralize, :action => 'index' %> &rsaquo; <%= t("New") %></h2>
 
-<%= typus_block :new_top %>
+<%= typus_block :model => @resource[:self], :partial => :new_top %>
 
 <% form_for @item, 
             :url  => { :action => 'create', 
                        :back_to => params[:back_to], 
                        :selected => params[:selected], 
-                       :model => params[:model], 
-                       :model_id => params[:model_id] }, 
+                       :resource => params[:resource], 
+                       :resource_id => params[:resource_id] }, 
             :html => { :multipart => true } do |f| %>
-  <%= build_form %>
-  <p><%= submit_tag "Create entry", :class => 'button' %></p>
+  <%= build_form(@fields) %>
+  <p><%= submit_tag t("Create entry"), :class => 'button' %></p>
 <% end %>
 
-<%= typus_block :new_bottom %>
+<%= typus_block :model => @resource[:self], :partial => :new_bottom %>

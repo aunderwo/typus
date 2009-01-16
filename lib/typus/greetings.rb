@@ -1,22 +1,22 @@
 module Typus
 
-  @@greetings = { "Moyo" => "Tshiluba", 
+  @@greetings = { "Hala" => "Arabic", 
+                  "G'day" => "Australian", 
+                  "Hello" => "English", 
+                  "Tere" => "Estonian", 
+                  "Salut" => "French", 
+                  "Yasou" => "Greek", 
+                  "Aloha" => "Hawaiian", 
+                  "Góðan daginn" => "Icelandic", 
+                  "Konnichiwa" => "Japanese", 
                   "Bangawoyo" => "Korean", 
                   "Ni hao" => "Mandarin", 
-                  "Hala" => "Arabic", 
-                  "Sawubona" => "Zulu", 
-                  "G'day" => "Australian", 
-                  "Yasou" => "Greek", 
-                  "Góðan daginn" => "Icelandic", 
-                  "Tere" => "Estonian", 
-                  "Hej" => "Swedish", 
-                  "Merhaba" => "Turkish", 
                   "Hola" => "Spanish", 
-                  "Hello" => "English", 
-                  "Konnichiwa" => "Japanese", 
+                  "Hej" => "Swedish", 
                   "Kumusta" => "Tagalog", 
-                  "Aloha" => "Hawaiian", 
-                  "Salut" => "French" }.to_a
+                  "Moyo" => "Tshiluba", 
+                  "Merhaba" => "Turkish", 
+                  "Sawubona" => "Zulu" }.to_a
 
   mattr_accessor :greetings
 

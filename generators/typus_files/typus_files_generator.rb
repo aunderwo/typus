@@ -4,11 +4,8 @@ class TypusFilesGenerator < Rails::Generator::Base
 
     record do |m|
 
-      ##
-      # This is a little buggy, but it works as expected. We should use 
-      # the Dir[] to detect all the existing migrations as Rails should 
-      # do it for us.
-      #
+      # We use the Dir[] to detect all the existing migrations because 
+      # Rails is not working as expected.
       migrations = ['create_typus_users']
       migrations.each do |migration|
         if Dir["db/migrate/[0-9]*_*.rb"].grep(/[0-9]+_#{migration}.rb$/).empty?
@@ -18,25 +15,24 @@ class TypusFilesGenerator < Rails::Generator::Base
         end
       end
 
-      application = Rails.root.split("/").last
+      application = File.basename(Dir.pwd)
 
-      ##
-      # For creating `typus.yml` and `typus_roles.yml` we need first to detect 
-      # the available AR models of the application, not the plugins.
-      #
-      Dir.chdir(File.join(Rails.root, "app/models"))
+      # For creating `typus.yml` and `typus_roles.yml` we need first to 
+      # detect the available AR models of the application, not the plugins.
+      Dir.chdir("#{Rails.root}/app/models")
       models, ar_models = Dir["*.rb"], []
 
       models.each do |model|
-        class_name = eval model.sub(/\.rb$/,'').camelize
-        if class_name.superclass.to_s.include?("ActiveRecord::Base")
-          ar_models << class_name
+        class_name = model.sub(/\.rb$/,'').classify
+        begin
+          klass = class_name.constantize
+          ar_models << klass if klass.superclass.to_s.include?("ActiveRecord::Base")
+        rescue Exception => e
+          puts "=> [typus] #{e.message} on `#{class_name}`."
         end
       end
 
-      ##
-      # configuration files
-      #
+      # Configuration files
       folder = "#{Rails.root}/config/typus"
       Dir.mkdir(folder) unless File.directory?(folder)
 
@@ -47,27 +43,22 @@ class TypusFilesGenerator < Rails::Generator::Base
                    :assigns => { :ar_models => ar_models, :application => application }
       end
 
-      ##
-      # initializers
-      #
+      # Initializers
       m.template "initializers/typus.rb", 
                  "config/initializers/typus.rb", 
                  :assigns => { :application => application }
 
-      ["#{Rails.root}/public/stylesheets/admin", 
-      "#{Rails.root}/public/images/admin" ].each do |folder|
+      # Public folders
+      [ "#{Rails.root}/public/stylesheets/admin", 
+        "#{Rails.root}/public/javascripts/admin", 
+        "#{Rails.root}/public/images/admin" ].each do |folder|
         Dir.mkdir(folder) unless File.directory?(folder)
       end
 
-      ##
-      # stylesheets
-      #
       m.file "stylesheets/admin/screen.css", "public/stylesheets/admin/screen.css"
       m.file "stylesheets/admin/reset.css", "public/stylesheets/admin/reset.css"
+      m.file "javascripts/admin/application.js", "public/javascripts/admin/application.js"
 
-      ##
-      # images
-      #
       files = %w( spinner.gif trash.gif status_false.gif status_true.gif )
       files.each { |file| m.file "images/admin/#{file}", "public/images/admin/#{file}" }
 
