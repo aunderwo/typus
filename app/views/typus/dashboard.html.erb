@@ -1,13 +1,13 @@
 <% content_for :sidebar do %>
-  <%= typus_block :sidebar, :dashboard %>
+  <%= typus_block :location => 'dashboard', :partial => 'sidebar' %>
 <% end %>
 
 <h2>Dashboard</h2>
 
-<%= typus_block :top, :dashboard %>
+<%= typus_block :location => 'dashboard', :partial => 'top' %>
 
 <%= resources %>
 
 <%= applications %>
 
-<%= typus_block :bottom, :dashboard %>
+<%= typus_block :location => 'dashboard', :partial => 'bottom' %>

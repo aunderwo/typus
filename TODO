@@ -1,8 +1,6 @@
 TODO
 ====
 
-[ ] Clean typus_form.
-[ ] Clean typus_table.
 [ ] Define a show action for the read-only items. This will be 
     if the user has only permission to r the items and not update.
 [ ] Test helpers.
@@ -12,13 +10,15 @@ TODO
 ON IT
 =====
 
-[ ] Sidebar filter for *_id can be a selector or a list of links.
 [ ] Internationalize messages. (i18n branch)
 [ ] Actions for a record can be added to the listings.
 
 DONE
 ====
 
+[X] Clean typus_form.
+[X] Clean typus_table.
+[X] Sidebar filter for *_id can be a selector or a list of links.
 [X] Refactored application method on typus_helper.
 [X] Moved code from admin_controller to an authentication module.
 [X] Moved code from typus_controller and admin_controller to the 

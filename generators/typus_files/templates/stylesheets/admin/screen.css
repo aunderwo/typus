@@ -1,15 +1,3 @@
-/* ----------------------------------------------------------
-Title:     Typus
-Details:   Master styles for Typus
-Author:    fesplugas@intraducibles.net
-Updated:   November 2008
----------------------------------------------------------- */
-
-/* reset all styles
----------------------------------------------------------- */
-
-@import url(reset.css);
-
 /* html
 ---------------------------------------------------------- */
 
@@ -53,17 +41,23 @@ a.on {
 /* header
 ---------------------------------------------------------- */
 
+#header_wrapper {
+  background: #000;
+}
+
 #header {
   background: #000;
   color: #FFF;
-  padding: 1em 1.5em;
+  margin: 0px auto;
+  padding: 1em 0;
+  width: 940px;
 }
 
   #header h1 {
     color: #FFF;
     font-size: 2em;
     font-weight: normal;
-    margin: 0em;
+    margin: 0;
   }
 
     #header h1 small {
@@ -83,27 +77,33 @@ a.on {
     margin-top: 1em;
   }
 
+    #header .right ul {
+    }
+
     #header .right li {
       list-style: none;
       display: inline;
       padding-left: 1em;
     }
 
-/* wrapper
+/* content
 ---------------------------------------------------------- */
 
 #wrapper {
   background: #FFF;
-  min-height: 400px;
-  min-width: 800px;
 }
 
-/* content
----------------------------------------------------------- */
+#content_wrapper {
+  background: #FFF;
+  min-height: 400px;
+  margin: 0 auto;
+  width: 940px;
+}
 
 #content {
-  margin-right: 25em;
-  padding: 1.5em;
+  width: 700px;
+  float: left;
+  padding: 1.5em 0;
 }
 
   #content h2 {
@@ -188,9 +188,10 @@ a.on {
 ---------------------------------------------------------- */
 
 #sidebar {
-  float: right;
-  padding: 1.5em;
-  width: 22em;
+  float: left;
+  margin-left: 20px;
+  padding: 1.5em 0;
+  width: 220px;
 }
 
   #sidebar h2 {
@@ -238,18 +239,24 @@ a.on {
 /* footer
 ---------------------------------------------------------- */
 
+#footer_wrapper {
+  background: #000;
+}
+
 #footer {
-  border: 2px solid #000;
-  color: white;
+  background: #000;
+  margin: 0 auto;
+  width: 940px;
 }
 
   #footer p {
+    color: #FFF;
     font-size: 0.9em;
-    margin: 1em 1.5em;
+    padding: 1em 0em;
   }
 
   #footer a {
-    color: white;
+    color: #FFF;
     font-weight: normal;
     text-decoration: underline;
   }
@@ -262,7 +269,7 @@ a.on {
 ---------------------------------------------------------- */
 
 #content form {
-  margin: 0em 0em 2em 0em;
+  margin: 1em 0em 2em 0em;
 }
 
   #content form ul {
@@ -285,10 +292,9 @@ a.on {
 
   #content input.text {
     border: 1px solid #999;
-    font-size: 1.5em;
-    font-weight: normal;
-    padding: 0.25em;
-    width: 95%;
+    font-size: 20px;
+    padding: 5px;
+    width: 688px;
   }
 
   input.button {
@@ -310,9 +316,10 @@ a.on {
 
   #content textarea {
     border: 1px solid #999;
-    font-size: 1.20em;
+    font-family: "Courier";
+    font-size: 14px;
     padding: 3px;
-    width: 100%;
+    width: 691px;
   }
 
   #content textarea:focus { 
@@ -434,8 +441,7 @@ dl {
   background: #FBE3E4;
   border: 2px solid #FBC2C4;
   color: #8a1f11;
-  padding: 0em 2px;
-  width: 95%;
+  padding: 0 10px;
 }
 
   .errorExplanation h3 {
@@ -467,9 +473,8 @@ dl {
 }
 
 .box_relationships {
-  border: 1px solid #D3D3D3;
-  margin: 1em 0em 0em 0em;
-  padding: 1em 1em;
+  border-top: 1px dotted #D3D3D3;
+  padding: 1.5em 0em;
 }
 
 input#search {

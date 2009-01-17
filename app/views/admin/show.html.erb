@@ -1,14 +1,19 @@
 <% content_for :sidebar do %>
-  <%= typus_block :show_sidebar %>
+  <%= typus_block :model => @resource[:self], :partial => :show_sidebar %>
   <%= actions %>
 <% end %>
 
-<%= typus_block :show %>
+<%= typus_block :model => @resource[:self], :partial => :show %>
 
-<h2><%= link_to "Dashboard", typus_dashboard_url %> &rsaquo; <%= link_to @model.name.pluralize.titleize, :action => 'index' %> &rsaquo; Show</h2>
+<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= link_to @resource[:class_name_humanized].pluralize, :action => 'index' %> &rsaquo; <%= t("Show") %></h2>
 
-<%= typus_block :show_top %>
+<%= typus_block :model => @resource[:self], :partial => :show_top %>
 
-<%=h @item.inspect %>
+<dl>
+<% @resource[:class].columns.map { |u| u.name }.each do |column| %>
+  <dt><%=h column.humanize %></dt>
+  <dd><%=h (!@item.send(column).blank?) ? @item.send(column) : "nil" %></dd>
+<% end %>
+</dl>
 
-<%= typus_block :show_bottom %>
+<%= typus_block :model => @resource[:self], :partial => :show_bottom %>

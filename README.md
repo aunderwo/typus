@@ -1,16 +1,19 @@
 # Typus
 
-As Django Admin, Typus is designed for a single activity:
+What's **Typus**? People at GitHub defined **Typus** as ...
+
+> Super easy admin interface for your Rails site.
+
+You can see some screenshots on the [wiki](http://github.com/fesplugas/typus/wikis).
+
+As Django Admin, **Typus** is designed for a "single" activity:
 
 > Trusted users editing structured content.
 
-Keep in mind that:
-
-> Typus doesn't try to be all the things to all the people.
-
-Once installed and configured you can login at <http://example.com/admin>.
-
-Screenshots on the [wiki](http://github.com/fesplugas/typus/wikis).
+Keep in mind that **Typus** doesn't try to be all the things to all 
+the people but it's extensible enough to match lots of use cases. I 
+started to develop it early 2006 and have been updating it to match 
+all my clients sites/projects.
 
 ## Installing
 
@@ -18,15 +21,16 @@ You can view the available tasks running:
 
     $ rake -T typus
     (in /home/fesplugas/projects/typus_platform)
-    rake typus:dependencies  # Install Typus dependencies (paperclip, acts_as_l....
-    rake typus:roles         # List current roles
-    rake typus:specs         # Generate specdoc-style documentation from tests
+    rake doc:plugins:typus  # Generate documentation for the typus plugin
+    rake typus:i18n         # Install simplified_translation.
+    rake typus:misc         # Install Paperclip, acts_as_list, acts_as_tree.
+    rake typus:roles        # List current roles
 
 ### Configure
 
-This task copies required assets to the public folder of your Rails 
-application, generates configuration files on `config` folder and 
-generates the required database migration files.
+The following generator installs required assets to the public folder 
+of your Rails application, generates configuration files on `config` 
+folder and generates the required database migration files.
 
     $ script/generate typus_files
 
@@ -42,19 +46,17 @@ server, go to <http://0.0.0.0:3000/admin> and follow the instructions.
 You can overwrite the following settings:
 
     Typus::Configuration.options[:app_name]
-    Typus::Configuration.options[:app_description]
     Typus::Configuration.options[:per_page]
     Typus::Configuration.options[:form_rows]
-    Typus::Configuration.options[:form_columns]
+    Typus::Configuration.options[:sidebar_selector]
     Typus::Configuration.options[:minute_step]
     Typus::Configuration.options[:email]
     Typus::Configuration.options[:toggle]
     Typus::Configuration.options[:edit_after_create]
     Typus::Configuration.options[:root]
     Typus::Configuration.options[:recover_password]
-    Typus::Configuration.options[:password]
-    Typus::Configuration.options[:special_characters_on_password]
     Typus::Configuration.options[:ssl]
+    Typus::Configuration.options[:icon_on_boolean]
 
 You can overwrite this settings in the initializer `typus.rb`.
 
@@ -280,6 +282,49 @@ Example:
 If the selector is not defined, you'll see a **text field** instead of a 
 *select field*.
 
+### Booleans
+
+By default Typus will show all your booleans on the listings with an 
+icon, if you prefer to show it as a text to be more verbose you can 
+disable it with:
+
+    Typus::Configuration.options[:icon_on_boolean]
+
+Boolean text shows *True* & *False*, but you can personalize it "per 
+attribute" to match your application requirements.
+
+    ##
+    # config/typus/application.yml
+    #
+    TypusUser:
+      fields:
+        list: email, status
+        options:
+          booleans:
+            # attribute: TRUE, FALSE
+            default: publicado, no_publicado
+            status: active, inactive
+
+### Date Formats
+
+Date formats allows to define the format of the datetime field.
+
+    ##
+    # config/typus/application.yml
+    #
+    Post:
+      fields:
+        list: title, published_at
+        options:
+          date_formats:
+            published_at: post_short
+
+    ##
+    # config/initializers/dates.rb
+    #
+    # Date::DATE_FORMATS[:post_short] = "%m/%Y"
+    Time::DATE_FORMATS[:post_short] = "%m/%y"
+
 ### Want more actions?
 
     Post:
@@ -450,10 +495,17 @@ example, the user Francesc Esplugas:
 
 ## Testing the plugin
 
-You can test the plugin by running `rake`. Tests will be performed against 
-a SQLite3 database in memory. You can also run tests against PostgreSQL and 
-MySQL databases. You have to create databases, both are called `typus_test`. 
-Once you've created them you can run the tests.
+Use the following steps to test the plugin.
+
+    $ rails typus_test
+    $ cd typus_test/vendor/plugins
+    $ git clone git://github.com/fesplugas/typus.git
+    $ rake
+
+By default tests are be performed against a SQLite3 database in memory.
+You can also run tests against PostgreSQL and MySQL databases. You 
+have to create databases, both are called `typus_test`. Once you've 
+created them you can run the tests.
 
     $ rake DB=mysql
     $ rake DB=postgresql
@@ -485,5 +537,5 @@ to mantain.
 - Group <http://groups.google.es/group/typus>
 - Report bugs <http://github.com/fesplugas/typus/wikis/bugs>
 
-Copyright (c) 2007-2008 Francesc Esplugas Marti, released under the 
+Copyright (c) 2007-2009 Francesc Esplugas Marti, released under the 
 MIT license

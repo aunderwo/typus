@@ -7,23 +7,17 @@
 
 # Options
 
-  Typus::Configuration.options[:app_description] = ""
   Typus::Configuration.options[:per_page] = 15
   Typus::Configuration.options[:form_rows] = 10
-  Typus::Configuration.options[:form_columns] = 10
+  Typus::Configuration.options[:sidebar_selector] = 10
   Typus::Configuration.options[:minute_step] = 5
   Typus::Configuration.options[:email] = 'admin@example.com'
   Typus::Configuration.options[:toggle] = true
   Typus::Configuration.options[:edit_after_create] = true
   Typus::Configuration.options[:root] = 'admin'
   Typus::Configuration.options[:recover_password] = true
-  Typus::Configuration.options[:password] = 8
-  Typus::Configuration.options[:special_characters_on_password] = false
   Typus::Configuration.options[:ssl] = false
-
-# Experimental options: (don't use them in production)
-
-  Typus::Configuration.options[:actions_on_table] = false
+  Typus::Configuration.options[:icon_on_boolean] = false
 
 =end
 

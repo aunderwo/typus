@@ -1,27 +1,27 @@
 <% content_for :sidebar do %>
-  <%= typus_block :index_sidebar %>
+  <%= typus_block :model => @resource[:self], :partial => :index_sidebar %>
   <%= actions %>
   <%= search %>
   <%= filters %>
 <% end %>
 
-<%= typus_block :index %>
+<%= typus_block :model => @resource[:self], :partial => :index %>
 
-<h2><%= link_to "Dashboard", typus_dashboard_url %> &rsaquo; <%= @model.name.pluralize.titleize %> <% if request.env['QUERY_STRING'] && !request.env['QUERY_STRING'].blank? %><small><%= link_to "Remove filter" %></small><% end %></h2>
+<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= @resource[:class_name_humanized].pluralize %> <% if request.env['QUERY_STRING'] && !request.env['QUERY_STRING'].blank? %><small><%= link_to t("Remove filter") %></small><% end %></h2>
 
-<%= typus_block :index_top %>
+<%= typus_block :model => @resource[:self], :partial => :index_top %>
 
-<% if @items.count > 0 -%>
-  <%= build_table %>
+<% unless @items.count.zero? -%>
+  <%= build_list(@resource[:class], @fields, @items) %>
   <%= render :partial => 'admin/pagination' if @items.prev || @items.next %>
 <% else %>
   <div class="box" id="empty">
-    <% if @model.count == 0 %>
-      <p>There are no entries.</p>
+    <% if @resource[:class].count.zero? %>
+      <p><%= t("There are no {{records}}.", :records => @resource[:class_name_humanized].pluralize.downcase) %></p>
     <% else %>
-      <p>There are no entries under this filter.</p>
+      <p><%= t("There are no {{records}} under this filter.", :records => @resource[:class_name_humanized].pluralize.downcase) %></p>
     <% end %>
   </div>
 <% end %>
 
-<%= typus_block :index_bottom %>
+<%= typus_block :model => @resource[:self], :partial => :index_bottom %>

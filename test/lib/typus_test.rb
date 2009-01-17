@@ -10,7 +10,7 @@ class TypusTest < Test::Unit::TestCase
 
   def test_should_return_modules_of_an_application
     assert Typus.respond_to?(:application)
-    assert_equal ["Post"], Typus.application('Blog')
+    assert_equal ["Comment", "Post"], Typus.application('Blog')
   end
 
   def test_should_return_modules_of_a_module
@@ -40,7 +40,7 @@ class TypusTest < Test::Unit::TestCase
   def test_should_return_models_and_should_be_sorted
     assert Typus.respond_to?(:models)
     assert Typus.models.kind_of?(Array)
-    assert_equal %w( Asset Category Page Post TypusUser ), Typus.models
+    assert_equal %w( Asset Category Comment Page Post TypusUser User ), Typus.models
   end
 
   def test_should_verify_resources_class_method
@@ -59,6 +59,26 @@ class TypusTest < Test::Unit::TestCase
 
   def test_should_verify_enable_exists
     assert Typus.respond_to?(:generator)
+  end
+
+  def test_should_return_user_class
+    assert_equal TypusUser, Typus.user_class
+  end
+
+  def test_should_return_overwritted_user_class
+    Typus::Configuration.options[:user_class_name] = 'CustomUser'
+    assert_equal CustomUser, Typus.user_class
+    Typus::Configuration.options[:user_class_name] = 'TypusUser'
+  end
+
+  def test_should_return_user_fk
+    assert_equal 'typus_user_id', Typus.user_fk
+  end
+
+  def test_should_return_overwritted_user_fk
+    Typus::Configuration.options[:user_fk] = 'my_user_fk'
+    assert_equal 'my_user_fk', Typus.user_fk
+    Typus::Configuration.options[:user_fk] = 'typus_user_id'
   end
 
 end

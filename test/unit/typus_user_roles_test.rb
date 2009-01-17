@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class TypusRolesTest < ActiveSupport::TestCase
+class TypusUserRolesTest < ActiveSupport::TestCase
 
   def test_should_get_list_of_roles
     roles = %w( admin editor designer )
@@ -12,13 +12,11 @@ class TypusRolesTest < ActiveSupport::TestCase
     typus_user = typus_users(:admin)
     assert_equal 'admin', typus_user.roles
 
-    models = %w( TypusUser Person Post Comment Category Page Asset Status )
+    models = %w( TypusUser Post Comment Category Page Asset Status )
     assert_equal models.sort, typus_user.resources.map(&:first).sort
 
-    ##
     # Order exists on the roles, but, as we compact the hash, the
     # resource is removed.
-    #
     assert !typus_user.resources.map(&:first).include?('Order')
 
     models.delete('Status')
@@ -27,17 +25,13 @@ class TypusRolesTest < ActiveSupport::TestCase
       models.each { |model| assert typus_user.can_perform?(model, action) }
     end
 
-    ##
     # The Order resource doesn't have an index action, so we 
     # say it's not available.
-    #
     assert !typus_user.can_perform?('Order', 'index')
 
-    ##
     # The Status resource has an index action, but not a show one.
     # We add the { :special => true } option to by-pass the action 
     # renaming performed in the TypusUser#can_perform? method.
-    #
     assert typus_user.can_perform?('Status', 'index', { :special => true })
     assert !typus_user.can_perform?('Status', 'show', { :special => true })
 
@@ -51,29 +45,21 @@ class TypusRolesTest < ActiveSupport::TestCase
     models = %w( Category Comment Post TypusUser )
     assert_equal models.sort, typus_user.resources.map(&:first).sort
 
-    ##
-    # Category: create, update
-    #
-    %w( create update ).each { |action| assert typus_user.can_perform?(Category, action) }
-    %w( read delete ).each { |action| assert !typus_user.can_perform?(Category, action) }
+    # Category: create, read, update
+    %w( create read update ).each { |action| assert typus_user.can_perform?(Category, action) }
+    %w( delete ).each { |action| assert !typus_user.can_perform?(Category, action) }
 
-    ##
-    # Post: create, update
-    #
-    %w( create update ).each { |action| assert typus_user.can_perform?(Post, action) }
-    %w( read delete ).each { |action| assert !typus_user.can_perform?(Post, action) }
+    # Post: create, read, update
+    %w( create read update ).each { |action| assert typus_user.can_perform?(Post, action) }
+    %w( delete ).each { |action| assert !typus_user.can_perform?(Post, action) }
 
-    ##
-    # Comment: update, delete
-    #
-    %w( update delete ).each { |action| assert typus_user.can_perform?(Comment, action) }
-    %w( create read ).each { |action| assert !typus_user.can_perform?(Comment, action) }
+    # Comment: read, update, delete
+    %w( read update delete ).each { |action| assert typus_user.can_perform?(Comment, action) }
+    %w( create ).each { |action| assert !typus_user.can_perform?(Comment, action) }
 
-    ##
-    # TypusUser: update
-    #
-    %w( update ).each { |action| assert typus_user.can_perform?(TypusUser, action) }
-    %w( create read delete ).each { |action| assert !typus_user.can_perform?(TypusUser, action) }
+    # TypusUser: read, update
+    %w( read update ).each { |action| assert typus_user.can_perform?(TypusUser, action) }
+    %w( create delete ).each { |action| assert !typus_user.can_perform?(TypusUser, action) }
 
   end
 
@@ -82,24 +68,20 @@ class TypusRolesTest < ActiveSupport::TestCase
     typus_user = typus_users(:designer)
     assert_equal 'designer', typus_user.roles
 
-    models = %w( Category Post )
+    models = %w( Category Comment Post )
     assert_equal models.sort, typus_user.resources.map(&:first).sort
 
-    ##
-    #  Category: read, update
-    #
-    assert !typus_user.can_perform?(Category, 'create')
-    assert typus_user.can_perform?(Category, 'read')
-    assert typus_user.can_perform?(Category, 'update')
-    assert !typus_user.can_perform?(Category, 'delete')
+    # Category: read, update
+    %w( read update ).each { |action| assert typus_user.can_perform?(Category, action) }
+    %w( create delete ).each { |action| assert !typus_user.can_perform?(Category, action) }
 
-    ##
-    #  Post: read
-    #
-    assert !typus_user.can_perform?(Post, 'create')
-    assert typus_user.can_perform?(Post, 'read')
-    assert !typus_user.can_perform?(Post, 'update')
-    assert !typus_user.can_perform?(Post, 'delete')
+    # Comment: read
+    %w( read ).each { |action| assert typus_user.can_perform?(Comment, action) }
+    %w( create update delete ).each { |action| assert !typus_user.can_perform?(Comment, action) }
+
+    # Post: read
+    %w( read ).each { |action| assert typus_user.can_perform?(Post, action) }
+    %w( create update delete ).each { |action| assert !typus_user.can_perform?(Post, action) }
 
   end
 

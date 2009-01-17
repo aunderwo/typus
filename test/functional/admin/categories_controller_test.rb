@@ -12,7 +12,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_item_one_step_down
-    return if !defined? ActiveRecord::Acts::List
+    return unless defined? ActiveRecord::Acts::List
     first_category = categories(:first)
     assert_equal 1, first_category.position
     second_category = categories(:second)
@@ -25,7 +25,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_item_one_step_up
-    return if !defined? ActiveRecord::Acts::List
+    return unless defined? ActiveRecord::Acts::List
     first_category = categories(:first)
     assert_equal 1, first_category.position
     second_category = categories(:second)
@@ -38,7 +38,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_top_item_to_bottom
-    return if !defined? ActiveRecord::Acts::List
+    return unless defined? ActiveRecord::Acts::List
     first_category = categories(:first)
     assert_equal 1, first_category.position
     get :position, { :id => first_category.id, :go => 'move_to_bottom' }
@@ -48,13 +48,20 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_bottom_item_to_top
-    return if !defined? ActiveRecord::Acts::List
+    return unless defined? ActiveRecord::Acts::List
     third_category = categories(:third)
     assert_equal 3, third_category.position
     get :position, { :id => third_category.id, :go => 'move_to_top' }
     assert flash[:success]
     assert_match /Record moved to top./, flash[:success]
     assert_equal 1, third_category.reload.position
+  end
+
+  def test_should_verify_items_are_sorted_by_position_on_list
+    get :index
+    assert_response :success
+    assert_equal [ 1, 2, 3 ], assigns['items'].items.map(&:position)
+    assert_equal [ 2, 3, 1], Category.find(:all).map(&:position)
   end
 
   def test_should_allow_admin_to_add_a_category

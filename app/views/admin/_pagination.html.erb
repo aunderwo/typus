@@ -8,10 +8,7 @@
 
   <% last_page = 0 -%>
 
-  <% windowed_pagination_links(@pager, 
-                               :window_size => 1, 
-                               :link_to_current_page => true, 
-                               :always_show_anchors => true) do |n| -%>
+  <% build_pagination(@pager) do |n| -%>
     <% if @items.number == n -%>
       <span class="current"><%= n %></span>
     <% else -%>

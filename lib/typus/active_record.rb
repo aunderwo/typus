@@ -7,29 +7,18 @@ module Typus
   module ClassMethods
 
     ##
-    # Return model fields as an array
-    #
-    # We cannot use hash for getting the model fields as we would 
-    # have the fields unsorted.
+    # Return model fields as a OrderedHash
     #
     def model_fields
-      columns.map { |u| [u.name, u.type.to_s] }
-    end
-
-    ##
-    # Return model fields as a hash
-    #
-    def model_fields_hash
-      hash = Hash.new
+      hash = ActiveSupport::OrderedHash.new
       columns.map { |u| hash[u.name.to_sym] = u.type.to_sym }
       return hash
     end
 
-    ##
-    #
-    #
-    def humanize
-      name.titleize.capitalize
+    def model_relationships
+      hash = ActiveSupport::OrderedHash.new
+      reflect_on_all_associations.map { |i| hash[i.name] = i.macro }
+      return hash
     end
 
     ##
@@ -49,13 +38,14 @@ module Typus
     #
     def typus_fields_for(filter)
 
-      fields_with_type = []
+      fields_with_type = ActiveSupport::OrderedHash.new
 
       begin
         if self.respond_to?("admin_fields_for_#{filter}")
-          fields = self.send("admin_fields_for_#{filter}").map { |a| a.to_s }
+          fields = self.send("admin_fields_for_#{filter}")
         else
-          fields = Typus::Configuration.config[self.name]['fields'][filter.to_s].split(', ')
+          fields = Typus::Configuration.config[self.name]['fields'][filter.to_s]
+          fields = fields.split(', ').collect { |f| f.to_sym }
         end
       rescue
         filter = 'list'
@@ -66,38 +56,27 @@ module Typus
 
         fields.each do |field|
 
-          attribute_type = 'string'
+          attribute_type = self.model_fields[field]
 
-          ##
-          # Get the field_type for each field
-          #
-          self.model_fields.each do |af|
-            attribute_type = af.last if af.first == field
+          # Custom field_type depending on the attribute name.
+          case field.to_s
+            when 'parent_id':       attribute_type = :tree
+            when /file_name/:       attribute_type = :file
+            when /password/:        attribute_type = :password
+            when 'position':        attribute_type = :position
           end
 
-          ##
-          # Some custom field_type depending on the attribute name
-          #
-          case field
-            when 'parent_id':       attribute_type = 'tree'
-            when /file_name/:       attribute_type = 'file'
-            when /password/:        attribute_type = 'password'
-            when 'position':        attribute_type = 'position'
-          end
-
-          if self.reflect_on_association(field.to_sym)
-            attribute_type = 'collection'
+          if self.reflect_on_association(field)
+            attribute_type = self.reflect_on_association(field).macro
           end
 
           if self.typus_field_options_for(:selectors).include?(field)
-            attribute_type = 'selector'
+            attribute_type = :selector
           end
 
-          ##
           # And finally insert the field and the attribute_type 
-          # into the fields_with_type.
-          #
-          fields_with_type << [ field, attribute_type ]
+          # into the fields_with_type ordered hash.
+          fields_with_type[field.to_s] = attribute_type
 
         end
 
@@ -123,32 +102,21 @@ module Typus
     #
     def typus_filters
 
-      available_fields = self.model_fields
+      fields_with_type = ActiveSupport::OrderedHash.new
 
       if self.respond_to?('admin_filters')
         fields = self.admin_filters
       else
         return [] unless Typus::Configuration.config[self.name]['filters']
-        fields = Typus::Configuration.config[self.name]['filters'].split(', ')
+        fields = Typus::Configuration.config[self.name]['filters'].split(', ').collect { |i| i.to_sym }
       end
 
-      fields_with_type = []
-
       fields.each do |field|
-
-        ##
-        # Is the field available as a reflection?
-        #
+        attribute_type = self.model_fields[field.to_sym]
         if self.reflect_on_association(field.to_sym)
-          attribute_type = 'collection'
+          attribute_type = self.reflect_on_association(field.to_sym).macro
         end
-
-        if available_fields.map { |a| a.first }.include?(field)
-          attribute_type = available_fields.map { |a| a.last if field == a.first }.compact.first
-        end
-
-        fields_with_type << [field, attribute_type] if attribute_type
-
+        fields_with_type[field.to_s] = attribute_type
       end
 
       return fields_with_type
@@ -171,9 +139,9 @@ module Typus
     #    end
     #
     def typus_actions_for(filter)
-      begin
+      if self.respond_to?("admin_actions_for_#{filter}")
         self.send("admin_actions_for_#{filter}").map { |a| a.to_s }
-      rescue
+      else
         Typus::Configuration.config[self.name]['actions'][filter.to_s].split(', ') rescue []
       end
     end
@@ -190,19 +158,18 @@ module Typus
     #   end
     #
     def typus_defaults_for(filter)
-      if self.respond_to?("admin_#{filter}") || self.respond_to?("admin_#{filter}")
-        defaults = self.send("admin_#{filter}")
+      if self.respond_to?("admin_#{filter}")
+        self.send("admin_#{filter}")
       else
-        defaults = Typus::Configuration.config[self.name][filter.to_s].split(', ') rescue []
+        Typus::Configuration.config[self.name][filter.to_s].split(', ') rescue []
       end
-      return defaults
     end
 
     ##
     #
     #
     def typus_field_options_for(filter)
-      Typus::Configuration.config[self.name]['fields']['options'][filter.to_s].split(', ') rescue []
+      Typus::Configuration.config[self.name]['fields']['options'][filter.to_s].split(', ').collect { |i| i.to_sym } rescue []
     end
 
     ##
@@ -225,21 +192,41 @@ module Typus
     #
     def typus_order_by
 
+      order = []
+
       begin
         fields = self.send("admin_order_by").map { |a| a.to_s }
       rescue
-        return "id ASC" unless Typus::Configuration.config[self.name]['order_by']
+        return "`#{self.table_name}`.id ASC" unless Typus::Configuration.config[self.name]['order_by']
         fields = Typus::Configuration.config[self.name]['order_by'].split(', ')
       end
 
-      order = []
       fields.each do |field|
-        order_by = (field.include?("-")) ? "#{field.delete('-')} DESC" : "#{field} ASC"
+        order_by = (field.include?("-")) ? "`#{self.table_name}`.#{field.delete('-')} DESC" : "`#{self.table_name}`.#{field} ASC"
         order << order_by
       end
 
       return order.join(', ')
 
+    end
+
+    ##
+    # We are able to define our own booleans.
+    #
+    def typus_boolean(attribute = 'default')
+      boolean = Typus::Configuration.config[self.name]['fields']['options']['booleans'][attribute] rescue nil
+      boolean = "true, false" if boolean.nil?
+      return { :true => boolean.split(', ').first.humanize, 
+               :false => boolean.split(', ').last.humanize }
+    end
+
+    ##
+    # We are able to define how to display dates on Typus
+    #
+    def typus_date_format(attribute = 'default')
+      date_format = Typus::Configuration.config[self.name]['fields']['options']['date_formats'][attribute] rescue nil
+      date_format = :db if date_format.nil?
+      return date_format.to_sym
     end
 
     ##
@@ -254,20 +241,23 @@ module Typus
     #
     def build_conditions(params)
 
-      conditions = []
+      conditions, joins = merge_conditions, []
 
-      params.each do |key, value|
+      query_params = params.dup
+      %w( action controller ).each { |param| query_params.delete(param) }
 
-        ##
-        # When a search is performed.
-        #
-        if key == 'search'
-          search = []
-          self.typus_defaults_for(:search).each do |s|
-            search << "LOWER(#{s}) LIKE '%#{value}%'"
-          end
-          conditions << "(#{search.join(' OR ')})"
+      # If a search is performed.
+      if query_params[:search]
+        search = []
+        self.typus_defaults_for(:search).each do |s|
+          search << ["LOWER(#{s}) LIKE '%#{query_params[:search]}%'"]
         end
+        conditions = merge_conditions(conditions, search.join(' OR '))
+      end
+
+      query_params.each do |key, value|
+
+        filter_type = self.model_fields[key.to_sym] || self.model_relationships[key.to_sym]
 
         ##
         # Sidebar filters:
@@ -276,33 +266,31 @@ module Typus
         #   - Datetime: today, past_7_days, this_month, this_year
         #   - Integer & String: *_id and "selectors" (P.ej. category_id)
         #
-        self.model_fields.each do |f|
-          filter_type = f.last if f.first == key
-          case filter_type
-          when "boolean"
-            status = case ActiveRecord::Base.connection.adapter_name.downcase
-                     when /sqlite3|sqlite/
-                       (value == 'true') ? 't' : 'f'
-                     else
-                       (value == 'true') ? 1 : 0
+        case filter_type
+        when :boolean
+          condition = { key => (value == 'true') ? true : false }
+          conditions = merge_conditions(conditions, condition)
+        when :datetime
+          interval = case value
+                     when 'today':         Time.today..Time.today.tomorrow
+                     when 'past_7_days':   6.days.ago.midnight..Time.today.tomorrow
+                     when 'this_month':    Time.today.last_month..Time.today.tomorrow
+                     when 'this_year':     Time.today.last_year..Time.today.tomorrow
                      end
-            conditions << "#{f.first} = '#{status}'"
-          when "datetime"
-            interval = case value
-                       when 'today':         Time.today..Time.today.tomorrow
-                       when 'past_7_days':   6.days.ago.midnight..Time.today.tomorrow
-                       when 'this_month':    Time.today.last_month..Time.today.tomorrow
-                       when 'this_year':     Time.today.last_year..Time.today.tomorrow
-                       end
-            conditions << "#{f.first} BETWEEN '#{interval.first.to_s(:db)}' AND '#{interval.last.to_s(:db)}'"
-          when "integer", "string"
-            conditions << "#{f.first} = \"#{value}\""
-          end
+          condition = ["#{key} BETWEEN ? AND ?", interval.first, interval.last]
+          conditions = merge_conditions(conditions, condition)
+        when :integer, :string
+          condition = { key => value }
+          conditions = merge_conditions(conditions, condition)
+        when :has_and_belongs_to_many
+          condition = {  key => { :id => value } }
+          conditions = merge_conditions(conditions, condition)
+          joins << key.to_sym
         end
 
       end
 
-      return conditions.join(" AND ")
+      return conditions, joins
 
     end
 
@@ -312,24 +300,24 @@ module Typus
 
     def previous_and_next(condition = {})
 
-      if condition.empty?
-        conditions = "id < #{self.id}"
-      else
-        conditions = self.class.build_conditions(condition)
-        conditions << " AND id != #{self.id}"
-      end
+      conditions = if condition.empty?
+                     "id < #{self.id}"
+                   else
+                     self.class.build_conditions(condition) \
+                     << " AND id != #{self.id}"
+                   end
 
       previous_ = self.class.find :first, 
                                   :select => [:id], 
                                   :order => "id DESC", 
                                   :conditions => conditions
 
-      if condition.empty?
-        conditions = "id > #{self.id}"
-      else
-        conditions = self.class.build_conditions(condition)
-        conditions << " AND id != #{self.id}"
-      end
+      conditions = if condition.empty?
+                     "id > #{self.id}"
+                   else
+                     self.class.build_conditions(condition) \
+                     << " AND id != #{self.id}"
+                   end
 
       next_ = self.class.find :first, 
                               :select => [:id], 
@@ -351,9 +339,7 @@ module Typus
     #
     #
     def typus_name
-      return to_label if respond_to?(:to_label)
-      return name if respond_to?(:name)
-      return "#{self.class}##{id}"
+      respond_to?(:name) ? name : "#{self.class}##{id}"
     end
 
   end

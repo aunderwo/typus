@@ -1,7 +1,7 @@
 <% form_tag :action => 'setup' do %>
   <ul>
-  <li><label for="email">Email</label>
+  <li><label for="email"><%= t("Email") %></label>
   <%= text_field :user, :email, :size => 20, :class => 'text' %></li>
-  <li><%= submit_tag "Generate account", :class => 'button' %></li>
+  <li><%= submit_tag t("Create account"), :class => 'button' %></li>
   </ul>
 <% end %>
