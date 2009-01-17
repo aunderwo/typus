@@ -217,7 +217,7 @@ module AdminFormHelper
 
   def typus_form_has_many(field)
     returning(String.new) do |html|
-      model_to_relate = field.classify.constantize
+      model_to_relate = model_to_relate = @resource[:class].reflect_on_association(field.to_sym).class_name.constantize
       html << <<-HTML
 <a name="#{field}"></a>
 <div class="box_relationships">
@@ -242,7 +242,7 @@ module AdminFormHelper
 
   def typus_form_has_and_belongs_to_many(field)
     returning(String.new) do |html|
-      model_to_relate = field.classify.constantize
+      model_to_relate = model_to_relate = @resource[:class].reflect_on_association(field.to_sym).class_name.constantize
       html << <<-HTML
 <a name="#{field}"></a>
 <div class="box_relationships">
