@@ -7,7 +7,7 @@
 
 <%= display_link_to_previous if params[:back_to] %>
 
-<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= link_to @resource[:class_name_humanized].pluralize, :action => 'index' %> &rsaquo; <%= t("New") %></h2>
+<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= link_to t(@resource[:class_name_humanized], :count => :many), :action => 'index' %> &rsaquo; <%= t("New") %></h2>
 
 <%= typus_block :model => @resource[:self], :partial => :new_top %>
 

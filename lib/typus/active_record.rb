@@ -230,13 +230,6 @@ module Typus
     end
 
     ##
-    # This is used by acts_as_tree
-    #
-    def top
-      find :all, :conditions => [ "parent_id IS ?", nil ]
-    end
-
-    ##
     # Build conditions
     #
     def build_conditions(params)

@@ -7,7 +7,7 @@
 
 <%= typus_block :model => @resource[:self], :partial => :index %>
 
-<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= @resource[:class_name_humanized].pluralize %> <% if request.env['QUERY_STRING'] && !request.env['QUERY_STRING'].blank? %><small><%= link_to t("Remove filter") %></small><% end %></h2>
+<h2><%= link_to t("Dashboard"), typus_dashboard_path %> &rsaquo; <%= t(@resource[:class_name_humanized], :count => :many) %> <% if request.env['QUERY_STRING'] && !request.env['QUERY_STRING'].blank? %><small><%= link_to t("Remove filter") %></small><% end %></h2>
 
 <%= typus_block :model => @resource[:self], :partial => :index_top %>
 

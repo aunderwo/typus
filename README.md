@@ -12,19 +12,20 @@ As Django Admin, **Typus** is designed for a "single" activity:
 
 Keep in mind that **Typus** doesn't try to be all the things to all 
 the people but it's extensible enough to match lots of use cases. I 
-started to develop it early 2006 and have been updating it to match 
-all my clients sites/projects.
+started to develop it late 2005 and have been updating it to match 
+all my clients sites/projects requirements.
 
 ## Installing
 
 You can view the available tasks running:
 
     $ rake -T typus
-    (in /home/fesplugas/projects/typus_platform)
+    (in /Users/fesplugas/Development/typus_platform)
     rake doc:plugins:typus  # Generate documentation for the typus plugin
-    rake typus:i18n         # Install simplified_translation.
+    rake typus:i18n         # Install simplified_translation plugin.
     rake typus:misc         # Install Paperclip, acts_as_list, acts_as_tree.
     rake typus:roles        # List current roles
+    rake typus:ssl          # Intall ssl_requirement plugin.
 
 ### Configure
 
@@ -57,6 +58,10 @@ You can overwrite the following settings:
     Typus::Configuration.options[:recover_password]
     Typus::Configuration.options[:ssl]
     Typus::Configuration.options[:icon_on_boolean]
+    Typus::Configuration.options[:thumbnail]
+    Typus::Configuration.options[:thumbnail_zoom]
+    Typus::Configuration.options[:config_folder]
+    Typus::Configuration.options[:ignore_missing_translations]
 
 You can overwrite this settings in the initializer `typus.rb`.
 
@@ -420,15 +425,19 @@ following files.
 
 ### Models
 
+    views/admin/MODEL/_edit.html.erb
     views/admin/MODEL/_edit_bottom.html.erb
     views/admin/MODEL/_edit_sidebar.html.erb
     views/admin/MODEL/_edit_top.html.erb
+    views/admin/MODEL/_index.html.erb
     views/admin/MODEL/_index_bottom.html.erb
     views/admin/MODEL/_index_sidebar.html.erb
     views/admin/MODEL/_index_top.html.erb
+    views/admin/MODEL/_new.html.erb
     views/admin/MODEL/_new_bottom.html.erb
     views/admin/MODEL/_new_sidebar.html.erb
     views/admin/MODEL/_new_top.html.erb
+    views/admin/MODEL/_show.html.erb
     views/admin/MODEL/_show_bottom.html.erb
     views/admin/MODEL/_show_sidebar.html.erb
     views/admin/MODEL/_show_top.html.erb
@@ -480,7 +489,7 @@ You can use SSL on Typus. To enable it update the initializer.
 Remember to install the `ssl_requirement` plugin to be able to use this 
 feature.
 
-    $ script/plugin install git://github.com/rails/ssl_requirement.git
+    $ rake typus:ssl
 
 ## Tip & Tricks
 
