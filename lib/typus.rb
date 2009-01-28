@@ -86,6 +86,7 @@ module Typus
       I18n.load_path += Dir[File.join("#{Rails.root}/vendor/plugins/typus/config/locales", '*.{rb,yml}')]
 
       require File.dirname(__FILE__) + "/../test/test_models" if Rails.env.test?
+      require 'typus/translation_helper' if Typus::Configuration.options[:ignore_missing_translations]
 
       require 'typus/user'
       require 'typus/active_record'

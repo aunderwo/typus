@@ -62,24 +62,32 @@ class Admin::CommentsControllerTest < ActionController::TestCase
 
   def test_should_verify_page_title_on_index
     get :index
-    assert_select 'title', "#{Typus::Configuration.options[:app_name]} &rsaquo; Comments"
+    assert_select 'title', /#{Typus::Configuration.options[:app_name]}/
+    assert_select 'title', /Comments/
+    assert_select 'title', /&rsaquo;/
   end
 
   def test_should_verify_page_title_on_new
     get :new
-    assert_select 'title', "#{Typus::Configuration.options[:app_name]} &rsaquo; Comments &rsaquo; New"
+    assert_select 'title', /#{Typus::Configuration.options[:app_name]}/
+    assert_select 'title', /Comments/
+    assert_select 'title', /New/
+    assert_select 'title', /&rsaquo;/
   end
 
   def test_should_verify_page_title_on_edit
     comment = comments(:first)
     get :edit, :id => comment.id
-    assert_select 'title', "#{Typus::Configuration.options[:app_name]} &rsaquo; Comments &rsaquo; Edit"
+    assert_select 'title', /#{Typus::Configuration.options[:app_name]}/
+    assert_select 'title', /Comments/
+    assert_select 'title', /Edit/
+    assert_select 'title', /&rsaquo;/
   end
 
   def test_should_show_add_new_link_in_index
     get :index
     assert_response :success
-    assert_match "Add comment", @response.body
+    assert_match "Add entry", @response.body
   end
 
   def test_should_not_show_add_new_link_in_index
