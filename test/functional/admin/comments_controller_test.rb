@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test/helper'
 
 ##
 # Here we test the template extensions rendering and all the 
@@ -12,52 +12,25 @@ class Admin::CommentsControllerTest < ActionController::TestCase
     @comment = comments(:first)
   end
 
-  def test_should_render_posts_sidebar_on_index_edit_and_show
-
+  def test_should_render_posts_extensions_on_index
     get :index
     assert_response :success
-    assert_match /_index_sidebar.html.erb/, @response.body
-
-    get :edit, { :id => @comment.id }
-    assert_response :success
-    assert_match /_edit_sidebar.html.erb/, @response.body
-
-    get :show, { :id => @comment.id }
-    assert_response :success
-    assert_match /_show_sidebar.html.erb/, @response.body
-
+    partials = %w( _index_sidebar.html.erb _index_top.html.erb _index_bottom.html.erb )
+    partials.each { |p| assert_match p, @response.body }
   end
 
-  def test_should_render_posts_top_on_index_show_and_edit
-
-    get :index
-    assert_response :success
-    assert_match /_index_top.html.erb/, @response.body
-
+  def test_should_render_posts_extensions_on_edit
     get :edit, { :id => @comment.id }
     assert_response :success
-    assert_match /_edit_top.html.erb/, @response.body
-
-    get :show, { :id => @comment.id }
-    assert_response :success
-    assert_match /_show_top.html.erb/, @response.body
-
+    partials = %w( _edit_sidebar.html.erb _edit_top.html.erb _edit_bottom.html.erb )
+    partials.each { |p| assert_match p, @response.body }
   end
 
-  def test_should_render_posts_bottom_on_index_show_and_edit
-
-    get :index
-    assert_response :success
-    assert_match /_index_bottom.html.erb/, @response.body
-
-    get :edit, { :id => @comment.id }
-    assert_response :success
-    assert_match /_edit_bottom.html.erb/, @response.body
-
+  def test_should_render_posts_extensions_on_show
     get :show, { :id => @comment.id }
     assert_response :success
-    assert_match /_show_bottom.html.erb/, @response.body
-
+    partials = %w( _show_sidebar.html.erb _show_top.html.erb _show_bottom.html.erb )
+    partials.each { |p| assert_match p, @response.body }
   end
 
   def test_should_verify_page_title_on_index
@@ -87,7 +60,7 @@ class Admin::CommentsControllerTest < ActionController::TestCase
   def test_should_show_add_new_link_in_index
     get :index
     assert_response :success
-    assert_match "Add entry", @response.body
+    assert_match 'Add entry', @response.body
   end
 
   def test_should_not_show_add_new_link_in_index
@@ -118,29 +91,16 @@ class Admin::CommentsControllerTest < ActionController::TestCase
 
   end
 
-  def test_should_verify_new_and_edit_page_contains_a_link_to_add_a_new_user
-
+  def test_should_verify_new_comment_contains_a_link_to_add_a_new_post
     get :new
-    match = "/admin/users/new?back_to=%2Fadmin%2Fposts%2Fnew&amp;selected=user_id"
-    assert_match match, @response.body
-
-    post_ = posts(:published)
-    get :edit, :id => post_.id
-    match = "/admin/users/new?back_to=%2Fadmin%2Fposts%2F1%2Fedit&amp;selected=user_id"
-    assert_match match, @response.body
-
-  end
-
-  def test_should_verify_new_and_edit_page_contains_a_link_to_add_a_new_user
-    get :new
-    match = "/admin/posts/new?back_to=%2Fadmin%2Fcomments%2Fnew&amp;selected=post_id"
+    match = '/typus/posts/new?back_to=%2Ftypus%2Fcomments%2Fnew&amp;selected=post_id'
     assert_match match, @response.body
   end
 
-  def test_should_verify_new_and_edit_page_contains_a_link_to_add_a_new_user
+  def test_should_verify_edit_comment_contains_a_link_to_add_a_new_post
     comment = comments(:first)
     get :edit, :id => comment.id
-    match = "/admin/posts/new?back_to=%2Fadmin%2Fcomments%2F#{comment.id}%2Fedit&amp;selected=post_id"
+    match = "/typus/posts/new?back_to=%2Ftypus%2Fcomments%2F#{comment.id}%2Fedit&amp;selected=post_id"
     assert_match match, @response.body
   end
 

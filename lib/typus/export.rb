@@ -12,9 +12,7 @@ module Typus
       csv_string = FasterCSV.generate do |csv|
         csv << fields
         @items.items.each do |item|
-          tmp = []
-          fields.each { |f| tmp << item.send(f) }
-          csv << tmp
+          csv << fields.map { |f| item.send(f) }
         end
       end
 

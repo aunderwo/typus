@@ -1,0 +1,26 @@
+<% content_for :sidebar do %>
+  <%= typus_block :model => @resource[:self], :partial => :edit_sidebar %>
+  <%= actions %>
+<% end %>
+
+<%= typus_block :model => @resource[:self], :partial => :edit %>
+
+<%= display_link_to_previous if params[:back_to] %>
+<h2><%= link_to t("Dashboard"), admin_dashboard_path %> &rsaquo; <%= link_to t(@resource[:class_name_humanized].pluralize), :action => 'index' %> &rsaquo; <%= t("Edit") %></h2>
+
+<%= typus_block :model => @resource[:self], :partial => :edit_top %>
+
+<% form_for @item, 
+            :url  => { :action => 'update',
+                       :id => @item.id ,
+                       :back_to => params[:back_to],
+                       :resource => params[:resource],
+                       :resource_id => params[:resource_id]},
+            :html => { :multipart => true } do |f| %>
+  <%= build_form(@fields) %>
+  <p><%= submit_tag t("Update entry"), :class => 'button' %></p>
+<% end %>
+
+<%= typus_relationships %>
+
+<%= typus_block :model => @resource[:self], :partial => :edit_bottom %>

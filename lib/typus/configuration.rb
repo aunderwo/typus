@@ -5,12 +5,11 @@ module Typus
     module Reloader
 
       ##
-      # Reload configuration files and roles when application is 
-      # running on development.
+      # Reload config and roles when app is running in development.
       #
       def reload_config_et_roles
         return unless Rails.env.development?
-        logger.info "[typus] Configuration files have been reloaded."
+        logger.info "=> [typus] Configuration files have been reloaded."
         Typus::Configuration.roles!
         Typus::Configuration.config!
       end
@@ -18,33 +17,36 @@ module Typus
     end
 
     ##
-    # Default application options that can be overwritten from
-    # an initializer.
+    # Default typus options that can be overwritten from an initializer.
     #
-    # Example:
+    typus_options = { :app_name => 'Typus', 
+                      :config_folder => 'config/typus', 
+                      :email => 'admin@example.com', 
+                      :ignore_missing_translations => true, 
+                      :locales => [ [ "English", :en ] ], 
+                      :path_prefix => 'admin', 
+                      :recover_password => false, 
+                      :root => 'admin', 
+                      :ssl => false, 
+                      :templates_folder => 'admin/templates',
+                      :user_class_name => 'TypusUser', 
+                      :user_fk => 'typus_user_id' }
+
+    ##
+    # Default model options that can be overwritten from an initializer.
     #
-    #   Typus::Configuration.options[:app_name] = "Your App Name"
-    #
-    @@options = { :app_name => 'Typus', 
-                  :per_page => 15, 
-                  :form_rows => 10, 
-                  :sidebar_selector => 10, 
-                  :minute_step => 5, 
-                  :toggle => true, 
-                  :edit_after_create => true, 
-                  :root => 'admin', 
-                  :recover_password => true, 
-                  :email => 'admin@example.com', 
-                  :ssl => false, 
-                  :prefix => 'admin', 
-                  :icon_on_boolean => true, 
-                  :nil => 'nil', 
-                  :user_class_name => 'TypusUser', 
-                  :user_fk => 'typus_user_id', 
-                  :thumbnail => :thumb, 
-                  :thumbnail_zoom => :normal, 
-                  :config_folder => 'config/typus', 
-                  :ignore_missing_translations => true }
+    model_options = { :edit_after_create => true, 
+                      :end_year => nil,
+                      :form_rows => 10, 
+                      :icon_on_boolean => true, 
+                      :minute_step => 5, 
+                      :nil => 'nil', 
+                      :per_page => 15, 
+                      :sidebar_selector => 10, 
+                      :start_year => nil, 
+                      :toggle => true }
+
+    @@options = typus_options.merge(model_options)
 
     mattr_accessor :options
 
@@ -85,6 +87,7 @@ module Typus
         data = YAML.load_file(file)
         next unless data
         data.each do |key, value|
+          next unless value
           begin
             @@roles[key] = @@roles[key].merge(value)
           rescue
@@ -92,7 +95,6 @@ module Typus
           end
         end
       end
-
       return @@roles.compact
 
     end

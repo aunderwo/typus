@@ -66,4 +66,4 @@ TypusUser:
   search: first_name, last_name, email, roles
   module: Typus
   description: System Users Administration
-  application: Typus Admin
+  application: Typus

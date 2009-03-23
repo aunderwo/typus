@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test/helper'
 
 ##
 # Here we test position action if acts as list is installed.
@@ -8,11 +8,11 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   def setup
     user = typus_users(:editor)
     @request.session[:typus] = user.id
-    @request.env["HTTP_REFERER"] = "/admin/categories"
+    @request.env['HTTP_REFERER'] = '/typus/categories'
   end
 
   def test_should_position_item_one_step_down
-    return unless defined? ActiveRecord::Acts::List
+    return if !defined?(ActiveRecord::Acts::List)
     first_category = categories(:first)
     assert_equal 1, first_category.position
     second_category = categories(:second)
@@ -25,7 +25,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_item_one_step_up
-    return unless defined? ActiveRecord::Acts::List
+    return if !defined?(ActiveRecord::Acts::List)
     first_category = categories(:first)
     assert_equal 1, first_category.position
     second_category = categories(:second)
@@ -38,7 +38,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_top_item_to_bottom
-    return unless defined? ActiveRecord::Acts::List
+    return if !defined?(ActiveRecord::Acts::List)
     first_category = categories(:first)
     assert_equal 1, first_category.position
     get :position, { :id => first_category.id, :go => 'move_to_bottom' }
@@ -48,7 +48,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
   end
 
   def test_should_position_bottom_item_to_top
-    return unless defined? ActiveRecord::Acts::List
+    return if !defined?(ActiveRecord::Acts::List)
     third_category = categories(:third)
     assert_equal 3, third_category.position
     get :position, { :id => third_category.id, :go => 'move_to_top' }
@@ -61,7 +61,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
     get :index
     assert_response :success
     assert_equal [ 1, 2, 3 ], assigns['items'].items.map(&:position)
-    assert_equal [ 2, 3, 1], Category.find(:all).map(&:position)
+    assert_equal [ 2, 3, 1 ], Category.find(:all).map(&:position)
   end
 
   def test_should_allow_admin_to_add_a_category
@@ -77,7 +77,7 @@ class Admin::CategoriesControllerTest < ActionController::TestCase
     get :new
     assert_response :redirect
     assert flash[:notice]
-    assert_equal "Designer can't perform action. (new)", flash[:notice]
+    assert_equal 'Designer can\'t perform action (new)', flash[:notice]
     assert_redirected_to :action => :index
   end
 

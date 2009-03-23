@@ -1,17 +1,15 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test/helper'
 
-class TypusTest < Test::Unit::TestCase
+class TypusTest < ActiveSupport::TestCase
 
   def test_should_verify_models
-    assert Category.kind_of?(Class)
-    assert Comment.kind_of?(Class)
-    assert Post.kind_of?(Class)
-    assert TypusUser.kind_of?(Class)
+    models = [ Category, Comment, Post, TypusUser ]
+    models.each { |m| assert m.superclass.equal?(ActiveRecord::Base) }
   end
 
   def test_should_verify_fixtures_are_loaded
     assert_equal 3, Category.count
-    assert_equal 2, Comment.count
+    assert_equal 4, Comment.count
     assert_equal 2, Post.count
     assert_equal 5, TypusUser.count
   end
