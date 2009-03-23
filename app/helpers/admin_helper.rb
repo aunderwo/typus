@@ -6,21 +6,40 @@ module AdminHelper
   include AdminFormHelper
   include AdminTableHelper
 
-  def display_link_to_previous
+  def display_link_to_previous(klass_name = @resource[:class_name], _params = params)
 
-    message = if params[:resource]
-                t("You're adding a new {{resource_from}} to a {{resource_to}}.", :resource_from => @resource[:class_name].titleize, :resource_to => params[:resource].classify.titleize)
+    options = {}
+    options[:resource_from] = klass_name.titleize
+    options[:resource_to] = _params[:resource].classify.titleize if _params[:resource]
+
+    editing = %w( edit update ).include?(_params[:action])
+
+    message = case
+              when _params[:resource] && editing
+                I18n.t("You're updating a {{resource_from}} for {{resource_to}}", options)
+              when editing
+                I18n.t("You're updating a {{resource_from}}", options)
+              when _params[:resource]
+                I18n.t("You're adding a new {{resource_from}} to {{resource_to}}", options)
               else
-                t("You're adding a new {{resource}}.", :resource => @resource[:class_name].titleize)
+                I18n.t("You're adding a new {{resource_from}}", options)
               end
 
     returning(String.new) do |html|
       html << <<-HTML
 <div id="flash" class="notice">
-<p>#{message} Do you want to cancel it? #{link_to "Click here", params[:back_to]}.</p>
+  <p>#{message} #{link_to(I18n.t("Do you want to cancel it?"), _params[:back_to])}</p>
 </div>
       HTML
     end
+
+  end
+
+  def remove_filter_link(filter = request.env['QUERY_STRING'])
+    return unless filter && !filter.blank?
+    <<-HTML
+<small>#{link_to t("Remove filter")}</small>
+    HTML
   end
 
   ##
@@ -28,13 +47,16 @@ module AdminHelper
   # display, this will be used, otherwise we use a default table which 
   # it's build from the options defined on the yaml configuration file.
   #
-  def build_list(model, fields, items)
-    template = "app/views/admin/#{@resource[:self]}/_#{@resource[:self].singularize}.html.erb"
+  def build_list(model, fields, items, resource = @resource[:self], link_options = {})
+
+    template = "app/views/admin/#{resource}/_#{resource.singularize}.html.erb"
+
     if File.exists?(template)
-      render :partial => template.gsub('/_', '/'), :collection => @items, :as => :item
+      render :partial => template.gsub('/_', '/'), :collection => items, :as => :item
     else
-      build_table(model, fields, items)
+      build_typus_table(model, fields, items, link_options)
     end
+
   end
 
   ##

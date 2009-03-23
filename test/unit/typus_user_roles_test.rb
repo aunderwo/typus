@@ -1,10 +1,10 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test/helper'
 
 class TypusUserRolesTest < ActiveSupport::TestCase
 
   def test_should_get_list_of_roles
-    roles = %w( admin editor designer )
-    assert_equal roles.sort, Typus::Configuration.roles.map(&:first).sort
+    roles = %w( admin designer editor )
+    assert_equal roles, Typus::Configuration.roles.map(&:first).sort
   end
 
   def test_admin_role_settings
@@ -12,14 +12,15 @@ class TypusUserRolesTest < ActiveSupport::TestCase
     typus_user = typus_users(:admin)
     assert_equal 'admin', typus_user.roles
 
-    models = %w( TypusUser Post Comment Category Page Asset Status )
-    assert_equal models.sort, typus_user.resources.map(&:first).sort
+    models = %w( Asset Category Comment Git Page Post Status TypusUser WatchDog )
+    assert_equal models, typus_user.resources.map(&:first).sort
 
     # Order exists on the roles, but, as we compact the hash, the
     # resource is removed.
     assert !typus_user.resources.map(&:first).include?('Order')
 
-    models.delete('Status')
+    resources = %w( Git Status WatchDog )
+    models.delete_if { |m| resources.include?(m) }
 
     %w( create read update destroy ).each do |action|
       models.each { |model| assert typus_user.can_perform?(model, action) }
@@ -42,8 +43,9 @@ class TypusUserRolesTest < ActiveSupport::TestCase
     typus_user = typus_users(:editor)
     assert_equal 'editor', typus_user.roles
 
-    models = %w( Category Comment Post TypusUser )
-    assert_equal models.sort, typus_user.resources.map(&:first).sort
+    %w( Category Comment Git Post TypusUser ).each do |model|
+      assert typus_user.resources.map(&:first).include?(model)
+    end
 
     # Category: create, read, update
     %w( create read update ).each { |action| assert typus_user.can_perform?(Category, action) }
@@ -69,7 +71,7 @@ class TypusUserRolesTest < ActiveSupport::TestCase
     assert_equal 'designer', typus_user.roles
 
     models = %w( Category Comment Post )
-    assert_equal models.sort, typus_user.resources.map(&:first).sort
+    assert_equal models, typus_user.resources.map(&:first).sort
 
     # Category: read, update
     %w( read update ).each { |action| assert typus_user.can_perform?(Category, action) }

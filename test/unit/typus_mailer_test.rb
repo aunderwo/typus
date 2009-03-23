@@ -1,20 +1,29 @@
-require File.dirname(__FILE__) + '/../test_helper'
+require 'test/helper'
 
 class TypusMailerTest < ActiveSupport::TestCase
 
   def setup
     @user = typus_users(:admin)
-    ActionMailer::Base.default_url_options[:host] = 'http://test.host'
+    ActionMailer::Base.default_url_options[:host] = 'test.host'
     @response = TypusMailer.deliver_reset_password_link(@user)
   end
 
-  def test_should_check_email_contains_application_name_on_subject_and_body
-    assert_match /#{Typus::Configuration.options[:app_name]}/, @response.subject
-    assert_match /#{Typus::Configuration.options[:app_name]}/, @response.body
+  def test_should_verify_email_from_is_defined_by_typus_options
+    assert_equal [ Typus::Configuration.options[:email] ], @response.from
   end
 
-  def test_should_verify_email_contains_token
-    assert_match /#{@user.token}/, @response.body
+  def test_should_verify_email_to_is_typus_user_email
+    assert_equal [ @user.email ], @response.to
+  end
+
+  def test_should_verify_email_subject
+    expected = "[#{Typus::Configuration.options[:app_name]}] Reset password"
+    assert_equal expected, @response.subject
+  end
+
+  def test_should_verify_email_contains_reset_password_link_with_token
+    expected = "http://test.host/typus/reset_password?token=1A2B3C4D5E6F"
+    assert_match expected, @response.body
   end
 
   def test_should_check_email_contains_signature

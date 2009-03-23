@@ -1,0 +1,27 @@
+<% content_for :sidebar do %>
+  <%= typus_block :model => @resource[:self], :partial => :index_sidebar %>
+  <%= actions %>
+  <%= search %>
+  <%= filters %>
+<% end %>
+
+<%= typus_block :model => @resource[:self], :partial => :index %>
+
+<h2><%= link_to t("Dashboard"), admin_dashboard_path %> &rsaquo; <%= t(@resource[:class_name_humanized].pluralize) %> <%= remove_filter_link %></h2>
+
+<%= typus_block :model => @resource[:self], :partial => :index_top %>
+
+<% unless @items.count.zero? -%>
+  <%= build_list(@resource[:class], @fields, @items) %>
+  <%= render :partial => 'admin/shared/pagination' if @items.prev || @items.next %>
+<% else %>
+  <div id="flash" class="notice">
+    <% if @resource[:class].count.zero? %>
+      <p><%= t("There are no {{records}}.", :records => @resource[:class_name_humanized].pluralize.downcase) %></p>
+    <% else %>
+      <p><%= t("There are no {{records}} under this filter.", :records => @resource[:class_name_humanized].pluralize.downcase) %></p>
+    <% end %>
+  </div>
+<% end %>
+
+<%= typus_block :model => @resource[:self], :partial => :index_bottom %>

@@ -15,8 +15,8 @@ protected
     if session[:typus]
       set_current_user
     else
-      back_to = (request.env['REQUEST_URI'] == '/admin') ? nil : request.env['REQUEST_URI']
-      redirect_to typus_login_url(:back_to => back_to)
+      back_to = (request.env['REQUEST_URI'] == "/#{Typus::Configuration.options[:path_prefix]}") ? nil : request.env['REQUEST_URI']
+      redirect_to admin_sign_in_path(:back_to => back_to)
     end
   end
 
@@ -26,12 +26,24 @@ protected
   # off from Typus.
   #
   def set_current_user
-    @current_user ||= Typus.user_class.find(session[:typus])
-    raise unless Typus::Configuration.roles.keys.include?(@current_user.roles)
+
+    @current_user = Typus.user_class.find(session[:typus])
+
+    unless Typus::Configuration.roles.keys.include?(@current_user.roles)
+      message = t("Typus user or role no longer exist.", :default => "Typus user or role no longer exist.")
+      raise
+    end
+
+    unless @current_user.status
+      back_to = (request.env['REQUEST_URI'] == "/#{Typus::Configuration.options[:path_prefix]}") ? nil : request.env['REQUEST_URI']
+      message = t("Your typus user has been disabled.", :default => "Your typus user has been disabled.")
+      raise
+    end
+
   rescue
-    flash[:error] = "Error! Typus User or role doesn't exist."
+    flash[:notice] = message
     session[:typus] = nil
-    redirect_to typus_login_url
+    redirect_to admin_sign_in_path(:back_to => back_to)
   end
 
   ##
@@ -39,9 +51,7 @@ protected
   #
   def generate_password(length = 8)
     chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
-    password = ""
-    1.upto(length) { |i| password << chars[rand(chars.size - 1)] }
-    return password
+    return Array.new(length) { chars.rand }.join
   end
 
   ##
@@ -60,39 +70,39 @@ protected
 
                 # Only admin and owner of Typus User can edit.
                 if !@current_user.is_root? && !current_user
-                  "As you're not the admin or the owner of this record you cannot edit it."
+                  t("As you're not the admin or the owner of this record you cannot edit it.")
                 end
 
               when 'update'
 
                 # current_user cannot change her role.
                 if current_user && !(@item.roles == params[:item][:roles])
-                  "You can't change your role."
+                  t("You can't change your role.")
                 end
 
               when 'toggle'
 
                 # Only admin can toggle typus user status, but not herself.
                 if @current_user.is_root? && current_user
-                  "You can't toggle your status."
+                  t("You can't toggle your status.")
                 elsif !@current_user.is_root?
-                  "You're not allowed to toggle status."
+                  t("You're not allowed to toggle status.")
                 end
 
               when 'destroy'
 
                 # Admin can remove anything except herself.
                 if @current_user.is_root? && current_user
-                  "You can't remove yourself."
+                  t("You can't remove yourself.")
                 elsif !@current_user.is_root?
-                  "You're not allowed to remove Typus Users."
+                  t("You're not allowed to remove Typus Users.")
                 end
 
               end
 
     if message
       flash[:notice] = message
-      redirect_to :back rescue redirect_to typus_dashboard_url
+      redirect_to :back rescue redirect_to admin_dashboard_path
     end
 
   end
@@ -105,17 +115,17 @@ protected
 
     message = case params[:action]
               when 'index', 'show'
-                "#{@current_user.roles.capitalize} can't display items."
+                t("{{current_user_role}} can't display items", :current_user_role => @current_user.roles.capitalize)
               when 'edit', 'update', 'position', 'toggle', 'relate', 'unrelate'
               when 'destroy'
-                "#{@current_user.roles.capitalize} can't delete this item."
+                t("{{current_user_role}} can't delete this item", :current_user_role => @current_user.roles.capitalize )
               else
-                "#{@current_user.roles.capitalize} can't perform action. (#{params[:action]})"
+                t("{{current_user_role}} can't perform action ({{action}})", :current_user_role => @current_user.roles.capitalize, :action => params[:action] )
               end
 
     unless @current_user.can_perform?(@resource[:class], params[:action])
-      flash[:notice] = message || "#{@current_user.roles.capitalize} can't perform action. (#{params[:action]})"
-      redirect_to :back rescue redirect_to typus_dashboard_url
+      flash[:notice] = message || t("{{current_user_role}} can't perform action. ({{action}})", :current_user_role => @current_user.roles.capitalize, :action => params[:action] )
+      redirect_to :back rescue redirect_to admin_dashboard_path
     end
 
   end
@@ -129,8 +139,8 @@ protected
     controller = params[:controller].split('/').last
     action = params[:action]
     unless @current_user.can_perform?(controller.camelize, action, { :special => true })
-      flash[:notice] = "#{@current_user.roles.capitalize} can't go to #{action} on #{controller.humanize.downcase}."
-      redirect_to :back rescue redirect_to typus_dashboard_url
+      flash[:notice] = t("{{current_user_role}} can't go to {{action}} on {{controller}}", :current_user_role => @current_user.roles.capitalize, :action => action, :controller => controller.humanize.downcase)
+      redirect_to :back rescue redirect_to admin_dashboard_path
     end
   end
 

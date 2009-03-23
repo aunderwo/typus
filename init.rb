@@ -1,15 +1,9 @@
 require 'typus'
 require 'sha1'
 
-##
-# Load paths. (This will be the first thing I'll remove once 
-# Rails 2.3/3 is released.)
-#
-
-ActionController::Base.append_view_path(File.join(File.dirname(__FILE__), 'app', 'views'))
-
-%w( models controllers helpers ).each do |folder|
-  ActiveSupport::Dependencies.load_paths << File.join(File.dirname(__FILE__), 'app', folder)
+if Rails.env.test?
+  Typus::Configuration.options[:config_folder] = 'vendor/plugins/typus/test/config/working'
+  Typus::Configuration.options[:path_prefix] = 'typus'
 end
 
 ##

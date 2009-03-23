@@ -24,30 +24,15 @@ module Typus
     ##
     # Form and list fields
     #
-    #   class Post < ActiveRecord::Base
-    #
-    #     def self.admin_fields_for_list
-    #       [ :title, :category_id, :status ]
-    #     end
-    #
-    #     def self.admin_fields_for_form
-    #       [ :title, :body, :excerpt, :category_id, :status ]
-    #     end
-    #
-    #   end
-    #
     def typus_fields_for(filter)
 
       fields_with_type = ActiveSupport::OrderedHash.new
 
       begin
-        if self.respond_to?("admin_fields_for_#{filter}")
-          fields = self.send("admin_fields_for_#{filter}")
-        else
-          fields = Typus::Configuration.config[self.name]['fields'][filter.to_s]
-          fields = fields.split(', ').collect { |f| f.to_sym }
-        end
+        fields = Typus::Configuration.config[name]['fields'][filter.to_s]
+        fields = fields.split(', ').collect { |f| f.to_sym }
       rescue
+        return [] if filter == 'list'
         filter = 'list'
         retry
       end
@@ -56,7 +41,7 @@ module Typus
 
         fields.each do |field|
 
-          attribute_type = self.model_fields[field]
+          attribute_type = model_fields[field]
 
           # Custom field_type depending on the attribute name.
           case field.to_s
@@ -66,11 +51,11 @@ module Typus
             when 'position':        attribute_type = :position
           end
 
-          if self.reflect_on_association(field)
-            attribute_type = self.reflect_on_association(field).macro
+          if reflect_on_association(field)
+            attribute_type = reflect_on_association(field).macro
           end
 
-          if self.typus_field_options_for(:selectors).include?(field)
+          if typus_field_options_for(:selectors).include?(field)
             attribute_type = :selector
           end
 
@@ -81,7 +66,7 @@ module Typus
         end
 
       rescue
-        fields = Typus::Configuration.config[self.name]['fields']['list'].split(', ')
+        fields = Typus::Configuration.config[name]['fields']['list'].split(', ')
         retry
       end
 
@@ -92,29 +77,18 @@ module Typus
     ##
     # Typus sidebar filters.
     #
-    #   class Post < ActiveRecord::Base
-    #
-    #     def self.admin_filters
-    #       [ :created_at, :status ]
-    #     end
-    #
-    #   end
-    #
     def typus_filters
 
       fields_with_type = ActiveSupport::OrderedHash.new
 
-      if self.respond_to?('admin_filters')
-        fields = self.admin_filters
-      else
-        return [] unless Typus::Configuration.config[self.name]['filters']
-        fields = Typus::Configuration.config[self.name]['filters'].split(', ').collect { |i| i.to_sym }
-      end
+      data = Typus::Configuration.config[name]['filters']
+      return [] unless data
+      fields = data.split(', ').collect { |i| i.to_sym }
 
       fields.each do |field|
-        attribute_type = self.model_fields[field.to_sym]
-        if self.reflect_on_association(field.to_sym)
-          attribute_type = self.reflect_on_association(field.to_sym).macro
+        attribute_type = model_fields[field.to_sym]
+        if reflect_on_association(field.to_sym)
+          attribute_type = reflect_on_association(field.to_sym).macro
         end
         fields_with_type[field.to_s] = attribute_type
       end
@@ -126,85 +100,54 @@ module Typus
     ##
     #  Extended actions for this model on Typus.
     #
-    #    class Post < ActiveRecord::Base
-    #
-    #      def self.admin_actions_for_index
-    #        [ :rebuild_all ]
-    #      end
-    #
-    #      def self.admin_actions_for_edit
-    #        [ :rebuild, :notify ]
-    #      end
-    #
-    #    end
-    #
     def typus_actions_for(filter)
-      if self.respond_to?("admin_actions_for_#{filter}")
-        self.send("admin_actions_for_#{filter}").map { |a| a.to_s }
-      else
-        Typus::Configuration.config[self.name]['actions'][filter.to_s].split(', ') rescue []
-      end
+      Typus::Configuration.config[name]['actions'][filter.to_s].split(', ')
+    rescue
+      []
     end
 
     ##
-    # Used for +search+.
-    #
-    #   class Post < ActiveRecord::Base
-    #
-    #     def self.admin_search
-    #       [ 'title', 'details' ]
-    #     end
-    #
-    #   end
+    # Used for +search+, +relationships+
     #
     def typus_defaults_for(filter)
-      if self.respond_to?("admin_#{filter}")
-        self.send("admin_#{filter}")
-      else
-        Typus::Configuration.config[self.name][filter.to_s].split(', ') rescue []
-      end
+      data = Typus::Configuration.config[name][filter.to_s]
+      return (!data.nil?) ? data.split(', ') : []
     end
 
     ##
     #
     #
     def typus_field_options_for(filter)
-      Typus::Configuration.config[self.name]['fields']['options'][filter.to_s].split(', ').collect { |i| i.to_sym } rescue []
+      Typus::Configuration.config[name]['fields']['options'][filter.to_s].split(', ').collect { |i| i.to_sym }
+    rescue
+      []
     end
 
     ##
-    # Used for +relationships+
+    # We should be able to overwrite options by model.
     #
-    def typus_relationships
-      Typus::Configuration.config[self.name]['relationships'].split(', ') rescue []
+    def typus_options_for(filter)
+
+      data = Typus::Configuration.config[name]
+      unless data['options'].nil?
+        value = data['options'][filter.to_s] unless data['options'][filter.to_s].nil?
+      end
+
+      return (!value.nil?) ? value : Typus::Configuration.options[filter.to_sym]
+
     end
 
     ##
     # Used for order_by
     #
-    #   class Post < ActiveRecord::Base
-    #
-    #     def self.admin_order_by
-    #       [ '-created_at', 'name' ]
-    #     end
-    #
-    #   end
-    #
     def typus_order_by
 
-      order = []
+      fields = typus_defaults_for(:order_by)
+      return "`#{table_name}`.id ASC" if fields.empty?
 
-      begin
-        fields = self.send("admin_order_by").map { |a| a.to_s }
-      rescue
-        return "`#{self.table_name}`.id ASC" unless Typus::Configuration.config[self.name]['order_by']
-        fields = Typus::Configuration.config[self.name]['order_by'].split(', ')
-      end
-
-      fields.each do |field|
-        order_by = (field.include?("-")) ? "`#{self.table_name}`.#{field.delete('-')} DESC" : "`#{self.table_name}`.#{field} ASC"
-        order << order_by
-      end
+      order = fields.map do |field|
+                (field.include?('-')) ? "`#{table_name}`.#{field.delete('-')} DESC" : "`#{table_name}`.#{field} ASC"
+              end
 
       return order.join(', ')
 
@@ -213,27 +156,35 @@ module Typus
     ##
     # We are able to define our own booleans.
     #
-    def typus_boolean(attribute = 'default')
-      boolean = Typus::Configuration.config[self.name]['fields']['options']['booleans'][attribute] rescue nil
-      boolean = "true, false" if boolean.nil?
-      return { :true => boolean.split(', ').first.humanize, 
-               :false => boolean.split(', ').last.humanize }
+    def typus_boolean(attribute = :default)
+
+      boolean = Typus::Configuration.config[name]['fields']['options']['booleans'][attribute.to_s] rescue nil
+      boolean = 'true, false' if boolean.nil?
+
+      hash = ActiveSupport::OrderedHash.new
+      hash[:true] = boolean.split(', ').first.humanize
+      hash[:false] = boolean.split(', ').last.humanize
+
+      return hash
+
     end
 
     ##
     # We are able to define how to display dates on Typus
     #
-    def typus_date_format(attribute = 'default')
-      date_format = Typus::Configuration.config[self.name]['fields']['options']['date_formats'][attribute] rescue nil
+    def typus_date_format(attribute = :default)
+      date_format = Typus::Configuration.config[name]['fields']['options']['date_formats'][attribute.to_s] rescue nil
       date_format = :db if date_format.nil?
       return date_format.to_sym
     end
 
     ##
-    # This is used by acts_as_tree
+    # We are able to define which template to use to render the attribute 
+    # within the form
     #
-    def top
-      find :all, :conditions => [ "parent_id IS ?", nil ]
+    def typus_template(attribute)
+      template = Typus::Configuration.config[name]['fields']['options']['templates'][attribute.to_s] rescue nil
+      return template
     end
 
     ##
@@ -248,16 +199,15 @@ module Typus
 
       # If a search is performed.
       if query_params[:search]
-        search = []
-        self.typus_defaults_for(:search).each do |s|
-          search << ["LOWER(#{s}) LIKE '%#{query_params[:search]}%'"]
-        end
+        search = typus_defaults_for(:search).map do |s|
+                   ["LOWER(#{s}) LIKE '%#{query_params[:search]}%'"]
+                 end
         conditions = merge_conditions(conditions, search.join(' OR '))
       end
 
       query_params.each do |key, value|
 
-        filter_type = self.model_fields[key.to_sym] || self.model_relationships[key.to_sym]
+        filter_type = model_fields[key.to_sym] || model_relationships[key.to_sym]
 
         ##
         # Sidebar filters:
@@ -298,46 +248,31 @@ module Typus
 
   module InstanceMethods
 
-    def previous_and_next(condition = {})
+    def previous_and_next(condition = {}, klass = self.class)
 
-      conditions = if condition.empty?
-                     "id < #{self.id}"
-                   else
-                     self.class.build_conditions(condition) \
-                     << " AND id != #{self.id}"
-                   end
+      previous_conditions = "id < #{id}"
+      next_conditions = "id > #{id}"
 
-      previous_ = self.class.find :first, 
-                                  :select => [:id], 
-                                  :order => "id DESC", 
-                                  :conditions => conditions
+      if !condition.empty?
+        conditions, joins = klass.build_conditions(condition)
+        previous_conditions += " AND #{conditions}"
+        next_conditions += " AND #{conditions}"
+      end
 
-      conditions = if condition.empty?
-                     "id > #{self.id}"
-                   else
-                     self.class.build_conditions(condition) \
-                     << " AND id != #{self.id}"
-                   end
+      previous_ = klass.find :first, 
+                             :select => [:id], 
+                             :order => "id DESC", 
+                             :conditions => previous_conditions
 
-      next_ = self.class.find :first, 
-                              :select => [:id], 
-                              :order => "id ASC", 
-                              :conditions => conditions
+      next_ = klass.find :first, 
+                         :select => [:id], 
+                         :order => "id ASC", 
+                         :conditions => next_conditions
 
       return previous_, next_
 
     end
 
-    ##
-    # Used by acts_as_tree to detect children.
-    #
-    def has_children?
-      children.size > 0
-    end
-
-    ##
-    #
-    #
     def typus_name
       respond_to?(:name) ? name : "#{self.class}##{id}"
     end

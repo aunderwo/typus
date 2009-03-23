@@ -1,0 +1,28 @@
+<div class="pagination">
+
+  <% if @items.prev? %>
+    <%= link_to t("&laquo; Previous"), params.merge(:page => @items.prev.number) %>
+  <% else %>
+    <span class="disabled"><%= t("&laquo; Previous") %></span>
+  <% end %>
+
+  <% last_page = 0 -%>
+
+  <% build_pagination(@pager) do |n| -%>
+    <% if @items.number == n -%>
+      <span class="current"><%= n %></span>
+    <% else -%>
+      <%= "..." if last_page + 1 < n %>
+      <%= link_to n, params.merge(:page => n) %>
+    <% end -%>
+    <% last_page = n -%>
+
+  <% end -%>
+
+  <% if @items.next? %>
+    <%= link_to t("Next &raquo;"), params.merge(:page => @items.next.number) %>
+  <% else %>
+    <span class="disabled"><%= t("Next &raquo;") %></span>
+  <% end %>
+
+</div>

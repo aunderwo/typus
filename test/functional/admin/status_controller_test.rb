@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../test_helper'
+require 'test/helper'
 
 ##
 # Here we test resources which are not related to an ActiveRecord model.
@@ -20,13 +20,13 @@ class Admin::StatusControllerTest < ActionController::TestCase
     @request.session[:typus] = nil
     get :index
     assert_response :redirect
-    assert_redirected_to typus_login_url(:back_to => '/admin/status')
+    assert_redirected_to admin_sign_in_path(:back_to => '/typus/status')
   end
 
   def test_should_verify_admin_can_not_go_to_show
     get :show
     assert_response :redirect
-    assert_redirected_to typus_dashboard_url
+    assert_redirected_to admin_dashboard_path
     assert flash[:notice]
     assert_match /#{@typus_user.roles.capitalize} can't go to show on status./, flash[:notice]
   end

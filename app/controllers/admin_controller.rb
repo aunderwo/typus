@@ -1,19 +1,24 @@
 class AdminController < ApplicationController
 
-  layout 'typus'
+  layout 'admin'
 
   include Authentication
   include Typus::Export
   include Typus::Configuration::Reloader
+  include Typus::Locale
 
   if Typus::Configuration.options[:ssl]
     include SslRequirement
     ssl_required :index, :new, :create, :edit, :show, :update, :destroy, :toggle, :position, :relate, :unrelate
   end
 
+  filter_parameter_logging :password
+
   before_filter :reload_config_et_roles
 
   before_filter :require_login
+
+  before_filter :set_locale
 
   before_filter :set_resource
   before_filter :find_record, :only => [ :show, :edit, :update, :destroy, :toggle, :position, :relate, :unrelate ]
@@ -37,7 +42,7 @@ class AdminController < ApplicationController
 
     # Pagination
     items_count = @resource[:class].count(:joins => joins, :conditions => conditions)
-    items_per_page = Typus::Configuration.options[:per_page].to_i
+    items_per_page = @resource[:class].typus_options_for(:per_page).to_i
     @pager = ::Paginator.new(items_count, items_per_page) do |offset, per_page|
       @resource[:class].find(:all, 
                              :joins => joins, 
@@ -95,7 +100,7 @@ class AdminController < ApplicationController
       create_with_back_to and return if params[:back_to]
       @item.save
       flash[:success] = t("{{model}} successfully created.", :model => @resource[:class_name_humanized])
-      if Typus::Configuration.options[:edit_after_create]
+      if @resource[:class].typus_options_for(:edit_after_create)
         redirect_to :action => 'edit', :id => @item.id
       else
         redirect_to :action => 'index'
@@ -111,10 +116,10 @@ class AdminController < ApplicationController
   #
   def edit
     item_params = params.dup
-    %w( action controller model model_id back_to id ).each { |p| item_params.delete(p) }
+    %w( action controller model model_id back_to id resource resource_id ).each { |p| item_params.delete(p) }
     # We assign the params passed trough the url
     @item.attributes = item_params
-    @previous, @next = @item.previous_and_next
+    @previous, @next = @item.previous_and_next(item_params)
     select_template :edit
   end
 
@@ -132,10 +137,14 @@ class AdminController < ApplicationController
   def update
     if @item.update_attributes(params[:item])
       flash[:success] = t("{{model}} successfully updated.", :model => @resource[:class_name_humanized])
-      if Typus::Configuration.options[:edit_after_create]
+      if @resource[:class].typus_options_for(:edit_after_create)
         redirect_to :action => 'edit', :id => @item.id
       else
-        redirect_to :action => 'index'
+        if params[:back_to]
+          redirect_to "#{params[:back_to]}##{@resource[:self]}"
+        else
+          redirect_to :action => 'index'
+        end
       end
     else
       @previous, @next = @item.previous_and_next
@@ -151,14 +160,14 @@ class AdminController < ApplicationController
     flash[:success] = t("{{model}} successfully removed.", :model => @resource[:class_name_humanized])
     redirect_to :back
   rescue Exception => error
-    error_handler(error, { :params => params.merge(:action => 'index', :id => nil) })
+    error_handler(error, params.merge(:action => 'index', :id => nil))
   end
 
   ##
   # Toggle the status of an item.
   #
   def toggle
-    if Typus::Configuration.options[:toggle]
+    if @resource[:class].typus_options_for(:toggle)
       @item.toggle!(params[:field])
       flash[:success] = t("{{model}} {{attribute}} changed.", :model => @resource[:class_name_humanized], :attribute => params[:field].humanize.downcase)
     else
@@ -237,7 +246,6 @@ private
     @resource[:table_name] = resource.classify.constantize.table_name
     @resource[:class_name] = resource.classify
     @resource[:class_name_humanized] = resource.classify.titleize
-    @resource[:self] = resource
 
   rescue Exception => error
     error_handler(error)
@@ -268,7 +276,7 @@ private
 
     # If the record is owned by the user ...
     unless @item.send(Typus.user_fk) == session[:typus]
-      flash[:notice] = "Record owned by another user."
+      flash[:notice] = t("Record owned by another user.")
       redirect_to :action => 'show', :id => @item.id
     end
 
@@ -278,6 +286,9 @@ private
   # Set fields and order when performing an index action.
   #
   def set_order_and_list_fields
+    # Set a default sort_order.
+    params[:sort_order] ||= 'desc'
+    # Get @fields & @order.
     @fields = @resource[:class].typus_fields_for(:list)
     @order = params[:order_by] ? "`#{@resource[:table_name]}`.#{params[:order_by]} #{params[:sort_order]}" : @resource[:class].typus_order_by
   end
@@ -287,18 +298,15 @@ private
   #
   def set_form_fields
     @fields = @resource[:class].typus_fields_for(:form)
-    @item_relationships = @resource[:class].typus_relationships
+    @item_relationships = @resource[:class].typus_defaults_for(:relationships)
   end
 
   ##
   # Select which template to render.
   #
   def select_template(template, resource = @resource[:self])
-    if File.exists?("app/views/admin/#{resource}/#{template}.html.erb")
-      render :template => "admin/#{resource}/#{template}"
-    else
-      render :template => "admin/#{template}"
-    end
+    folder = (File.exists?("app/views/admin/#{resource}/#{template}.html.erb")) ? resource : 'resources'
+    render :template => "admin/#{folder}/#{template}"
   end
 
   ##
@@ -345,10 +353,10 @@ private
   ##
   # Error handler
   #
-  def error_handler(error, redirection = typus_dashboard_url)
+  def error_handler(error, url = admin_dashboard_path)
     if Rails.env.production?
-      flash[:error] = error.message + "(#{@resource[:class]})"
-      redirect_to redirection
+      flash[:error] = "#{error.message} (#{@resource[:class]})"
+      redirect_to url
     else
       raise error
     end
